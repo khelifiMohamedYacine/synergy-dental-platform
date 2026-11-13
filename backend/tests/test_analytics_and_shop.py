@@ -110,7 +110,20 @@ def test_shop_summary_hides_customer_data():
     assert "Secret" not in summary.model_dump_json()
 
 
-def test_shop_unavailable_is_503(client, staff_headers):
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"wc_consumer_key": "", "wc_consumer_secret": ""},  # not connected yet
+        {
+            "wc_base_url": "http://127.0.0.1:9",
+            "wc_consumer_key": "ck_x",
+            "wc_consumer_secret": "cs_x",
+        },
+    ],
+)
+def test_shop_unavailable_is_503(client, staff_headers, monkeypatch, overrides):
+    settings = shop.get_settings().model_copy(update=overrides)
+    monkeypatch.setattr(shop, "get_settings", lambda: settings)
     r = client.get("/api/v1/shop/summary", headers=staff_headers)
     assert r.status_code == 503
     assert r.json()["error"]["code"] == "SHOP_UNAVAILABLE"
