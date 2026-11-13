@@ -11,6 +11,19 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: synergy
+          POSTGRES_PASSWORD: synergy
+          POSTGRES_DB: synergy
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U synergy" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://synergy:synergy@localhost:5432/synergy
     defaults:
       run:
         working-directory: backend
@@ -24,7 +37,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest -q
+      - run: pytest -q -W error
 
   dashboard:
     runs-on: ubuntu-latest

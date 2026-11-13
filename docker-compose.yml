@@ -31,6 +31,20 @@ services:
       timeout: 3s
       retries: 10
 
+  # One-off: apply migrations and seed fictional demo data, then exit (doc 04 §9).
+  migrate:
+    build:
+      context: ./backend
+      args:
+        INSTALL_DEV: "true"
+    env_file: .env
+    command: ["sh", "-c", "alembic upgrade head && python -m app.seed"]
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: ./backend
@@ -45,6 +59,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   dashboard:
     build: ./dashboard

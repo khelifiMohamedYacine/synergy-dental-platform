@@ -409,3 +409,4 @@ Custom data the `synergy-integration` plugin adds to the **MariaDB** WordPress d
 | Date | Change | Reason |
 |---|---|---|
 | 2026-11-13 | First draft | Phase 2 |
+| 2026-11-13 | Implemented (Phase 3). `reference` and `token_hash` use `varchar(9)` / `varchar(64)` instead of `char`: the CHECK / fixed-length hash already guarantee the length, and `char` padding semantics add surprises with no benefit. Added `ix_clinic_treatments_treatment_id` (reverse lookup for "clinics offering treatment X"). Migrations are hand-written SQL rather than edited autogenerate output | Implementation |

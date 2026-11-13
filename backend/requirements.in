@@ -3,3 +3,12 @@ uvicorn[standard]
 sqlalchemy>=2
 psycopg[binary]
 pydantic-settings
+alembic
+pyjwt
+pwdlib[argon2]
+email-validator
+phonenumbers
+limits
+python-multipart
+httpx2
+tzdata

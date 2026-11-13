@@ -335,3 +335,4 @@ because each step has a timestamp. This is a deliberate trade-off and is open to
 | Date | Change | Reason |
 |---|---|---|
 | 2026-11-13 | First contract draft | Phase 2 |
+| 2026-11-13 | Implemented (Phase 3). Rate limiting calls the `limits` library (SlowAPI's engine) directly, because SlowAPI's synchronous key functions cannot read the login form email or the authenticated user. `by-clinic` rows use `clinic_id` / `clinic_name`. Email validation accepts the reserved `.test` domain and phone validation accepts Ofcom's drama ranges, so the demo can run on fictional contact details only. The API refuses to start in production with a default or short `JWT_SECRET` / `SERVICE_API_KEY` | Implementation |
