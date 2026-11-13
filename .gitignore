@@ -1,0 +1,49 @@
+# --- Secrets: never commit real environment files ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- Node / React ---
+node_modules/
+dist/
+coverage/
+*.log
+npm-debug.log*
+
+# --- Playwright ---
+e2e/test-results/
+e2e/playwright-report/
+e2e/.auth/
+
+# --- WordPress: only our own theme and plugin are versioned ---
+wordpress/wp-core/
+wordpress/wp-content/uploads/
+wordpress/wp-content/upgrade/
+wordpress/wp-content/cache/
+
+# --- Backups / database dumps (may contain personal data) ---
+backups/
+*.sql.gz
+*.dump
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
