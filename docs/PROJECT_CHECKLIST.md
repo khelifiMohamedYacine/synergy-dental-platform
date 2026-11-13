@@ -21,7 +21,7 @@ _Last updated: 2026-11-13 (Phase 2: repo + Docker skeleton running)_
 - [x] Docker Desktop installed and `docker run hello-world` verified (2026-11-13: Engine 29.9.3, Compose v5.7.0, WSL 2 backend)
 - [x] Final repository location agreed: `C:\dev\synergy-dental-platform`
 - [x] Git repository initialised (branch `main`)
-- [ ] GitHub remote created (needs owner go-ahead; repo will be public)
+- [x] GitHub remote created: public repo `khelifiMohamedYacine/synergy-dental-platform` (2026-11-13; commits use the GitHub no-reply email)
 
 ## Phase 2 – Design
 - [~] Public site wireframes (drafted in `docs/design/ui-design.md`; awaiting owner review)
@@ -31,7 +31,7 @@ _Last updated: 2026-11-13 (Phase 2: repo + Docker skeleton running)_
 - [~] Full ERD + table descriptions (doc 04 draft; awaiting owner review)
 - [~] API contract (doc 05 draft; awaiting owner review)
 - [x] `.gitignore`, `.gitattributes`, `.env.example`
-- [x] Repo skeleton, docker-compose skeleton, CI skeleton (2026-11-13: `docker compose up --build` starts all 6 services; API `/health` + `/health/ready` verified through Caddy incl. 503 with DB stopped; backend 2 pytest + ruff clean; dashboard 2 Vitest tests, lint, build pass. CI workflow written, not yet run on GitHub)
+- [x] Repo skeleton, docker-compose skeleton, CI skeleton (2026-11-13: `docker compose up --build` starts all 6 services; API `/health` + `/health/ready` verified through Caddy incl. 503 with DB stopped; backend 2 pytest + ruff clean; dashboard 2 Vitest tests, lint, build pass. first GitHub Actions run green: backend, dashboard, compose)
 
 ## Phase 3 – Backend
 - [ ] Models + Alembic migrations · [ ] Seed data · [ ] Auth + RBAC · [ ] Enquiry endpoints
