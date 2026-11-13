@@ -24,11 +24,12 @@ _Last updated: 2026-11-13 (Phase 1 closed; Phase 2 started)_
 - [ ] GitHub remote created (needs owner go-ahead; repo will be public)
 
 ## Phase 2 – Design
-- [ ] Public site wireframes
-- [ ] Dashboard wireframes
-- [ ] Design tokens (colour, type, spacing)
-- [ ] Full ERD + table descriptions (doc 04)
-- [ ] API contract (doc 05 draft)
+- [~] Public site wireframes (drafted in `docs/design/ui-design.md`; awaiting owner review)
+- [~] Dashboard wireframes (drafted; awaiting owner review)
+- [~] Design tokens (drafted; text contrast ratios computed 2026-11-13, badge colours still to measure)
+- [~] WordPress theme approach: custom classic theme proposed (ui-design §5; awaiting owner review)
+- [~] Full ERD + table descriptions (doc 04 draft; awaiting owner review)
+- [~] API contract (doc 05 draft; awaiting owner review)
 - [x] `.gitignore`, `.gitattributes`, `.env.example`
 - [ ] Repo skeleton, docker-compose skeleton, CI skeleton (waits for Docker)
 

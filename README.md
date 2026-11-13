@@ -31,4 +31,7 @@ See [`docs/PROJECT_CHECKLIST.md`](docs/PROJECT_CHECKLIST.md) for live progress a
 | 01 | [Project Proposal](docs/01-project-proposal.md) | Complete (Phase 1) |
 | 02 | [Requirements Specification](docs/02-requirements-specification.md) | Baselined |
 | 03 | [System Architecture](docs/03-system-architecture.md) | Approved |
-| 04–11 | Database, API, Implementation, Testing, Security, Performance, Deployment, Final Report | Not started |
+| 04 | [Database Design](docs/04-database-design.md) | Draft for review |
+| 05 | [API Documentation](docs/05-api-documentation.md) | Contract draft |
+| — | [UI Design (tokens + wireframes)](docs/design/ui-design.md) | Draft for review |
+| 06–11 | Implementation, Testing, Security, Performance, Deployment, Final Report | Not started |
