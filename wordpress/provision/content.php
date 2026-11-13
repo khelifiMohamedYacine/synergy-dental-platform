@@ -229,12 +229,194 @@ foreach ( $products as [ $slug, $name, $price, $cat, $after, $featured, $short ]
 	$product->set_description( $short . ' This is a fictional product in a demonstration shop: nothing will be charged or delivered.' );
 	$product->set_category_ids( array( $cat_ids[ $cat ] ) );
 	$product->set_featured( $featured );
-	$product->set_virtual( true ); // No shipping step in the demo checkout.
+	$product->set_virtual( false ); // Physical: checkout asks for an address and a delivery method.
+	$product->set_weight( '0.2' );
 	$product->set_manage_stock( false );
 	$product->set_stock_status( 'instock' );
 	$product->update_meta_data( '_sd_recommended_after', $after );
 	$product->save();
 }
+
+// ----------------------------------------------------------------- images
+require_once ABSPATH . 'wp-admin/includes/file.php';
+require_once ABSPATH . 'wp-admin/includes/media.php';
+require_once ABSPATH . 'wp-admin/includes/image.php';
+
+$GLOBALS['sd_media_dir'] = '/provision/media';
+$credits                 = json_decode( (string) file_get_contents( $GLOBALS['sd_media_dir'] . '/credits.json' ), true );
+$GLOBALS['sd_credit_by'] = array_column( $credits, null, 'file' );
+
+/**
+ * Import /provision/media/<name>.jpg once (tracked by meta) and return the attachment ID.
+ *
+ * @param string $name Image base name.
+ * @param string $alt  Alternative text.
+ */
+function sd_media( string $name, string $alt ): int {
+	$existing = get_posts(
+		array(
+			'post_type'   => 'attachment',
+			'post_status' => 'inherit',
+			'numberposts' => 1,
+			'meta_key'    => '_sd_media',   // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_value'  => $name,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			'fields'      => 'ids',
+		)
+	);
+	if ( $existing ) {
+		update_post_meta( $existing[0], '_wp_attachment_image_alt', $alt );
+		return (int) $existing[0];
+	}
+	$tmp = wp_tempnam( $name . '.jpg' );
+	copy( $GLOBALS['sd_media_dir'] . "/{$name}.jpg", $tmp );
+	$id = media_handle_sideload(
+		array(
+			'name'     => "{$name}.jpg",
+			'tmp_name' => $tmp,
+		),
+		0,
+		$alt
+	);
+	if ( is_wp_error( $id ) ) {
+		WP_CLI::error( "Image {$name}: " . $id->get_error_message() );
+	}
+	update_post_meta( $id, '_sd_media', $name );
+	update_post_meta( $id, '_wp_attachment_image_alt', $alt );
+	$credit = $GLOBALS['sd_credit_by'][ "{$name}.jpg" ] ?? null;
+	if ( $credit ) {
+		wp_update_post(
+			array(
+				'ID'           => $id,
+				'post_excerpt' => sprintf( 'Photo: %s, %s (Wikimedia Commons)', $credit['author'] ? $credit['author'] : 'unknown author', $credit['license'] ),
+			)
+		);
+	}
+	return (int) $id;
+}
+
+$treatment_alts = array(
+	'check-up'              => 'A dental treatment room with a patient chair and X-ray viewer',
+	'hygienist'             => 'Toothpaste being squeezed onto a toothbrush',
+	'white-fillings'        => 'A modern dental chair and instrument unit',
+	'teeth-whitening'       => 'Gloved hands preparing a whitening gel syringe and custom trays',
+	'composite-bonding'     => 'A patient wearing protective glasses during a cosmetic treatment',
+	'porcelain-veneers'     => 'A dentist in a mask and gloves treating a patient',
+	'clear-aligners'        => 'Clear aligner trays and a storage case',
+	'fixed-braces'          => 'A dental professional in scrubs and gloves at work',
+	'dental-implants'       => 'Model of a dental implant with abutment and crown',
+	'crowns'                => 'Close-up of implant abutments before crowns are fitted',
+	'root-canal'            => 'Panoramic dental X-ray',
+	'emergency-appointment' => 'A tray of sterilised dental instruments',
+);
+foreach ( $treatment_alts as $slug => $alt ) {
+	$post = get_page_by_path( $slug, OBJECT, 'treatment' );
+	if ( $post ) {
+		set_post_thumbnail( $post, sd_media( "treatment-{$slug}", $alt ) );
+	}
+}
+$clinic_alts = array(
+	'riverside'    => 'Treatment room at Riverside Dental Studio with wooden cabinets',
+	'harbour-view' => 'Bright treatment suite at Harbour View Dental with glass partitions',
+	'parkside'     => 'Calm treatment room at Parkside Smile Clinic',
+	'old-town'     => 'Treatment room at Old Town Dental Practice with a blue patient chair',
+);
+foreach ( $clinic_alts as $slug => $alt ) {
+	$post = get_page_by_path( $slug, OBJECT, 'clinic' );
+	if ( $post ) {
+		set_post_thumbnail( $post, sd_media( "clinic-{$slug}", $alt ) );
+	}
+}
+$product_alts = array(
+	'sensitive-toothpaste'      => 'Toothpaste on a toothbrush',
+	'whitening-top-up-gel'      => 'Whitening gel applicator',
+	'aligner-cleaning-crystals' => 'A cup of blue cleaning solution',
+	'aligner-case'              => 'Aligner storage case with clear trays',
+	'interdental-brushes'       => 'A reel of dental floss',
+	'water-flosser'             => 'A compact oral care device beside a bottle',
+	'soft-toothbrush'           => 'A soft-bristled toothbrush',
+	'fluoride-mouthwash'        => 'A bottle of blue mouthwash with cups',
+);
+foreach ( $product_alts as $slug => $alt ) {
+	$post = get_page_by_path( $slug, OBJECT, 'product' );
+	if ( $post ) {
+		$product = wc_get_product( $post->ID );
+		$product->set_image_id( sd_media( "product-{$slug}", $alt ) );
+		$product->save();
+	}
+}
+set_post_thumbnail( $page_ids['about'], sd_media( 'about-dentist', 'A dentist in a mask and gloves treating a patient' ) );
+update_option( 'synergy_hero_image', sd_media( 'hero', 'A dental surgeon wearing a mask treats a smiling patient' ) );
+
+// Image credits page, generated from the recorded licences.
+$rows = '';
+foreach ( $credits as $credit ) {
+	$rows .= sprintf(
+		'<li><strong>%s</strong> by %s. Licence: <a href="%s">%s</a>. <a href="%s">Source</a></li>',
+		esc_html( $credit['title'] ),
+		esc_html( $credit['author'] ? $credit['author'] : 'unknown author' ),
+		esc_url( $credit['license_url'] ? $credit['license_url'] : $credit['source'] ),
+		esc_html( $credit['license'] ),
+		esc_url( $credit['source'] )
+	);
+}
+$page_ids['image-credits'] = sd_upsert_post(
+	array(
+		'post_type'    => 'page',
+		'post_name'    => 'image-credits',
+		'post_title'   => 'Image credits',
+		'post_content' => $p( 'Photographs on this demonstration site come from Wikimedia Commons under the licences listed below. They were resized for the web. The people shown have no connection with this fictional business.' ) . "\n\n<!-- wp:html -->\n<ul class=\"credits\">{$rows}</ul>\n<!-- /wp:html -->",
+	)
+);
+
+// ----------------------------------------------------------------- delivery and offers
+// One UK zone: standard, express, free standard over 30 GBP, and free collection from a clinic.
+$zone_id = 0;
+foreach ( WC_Shipping_Zones::get_zones() as $z ) {
+	if ( 'United Kingdom' === $z['zone_name'] ) {
+		$zone_id = (int) $z['id'];
+	}
+}
+$zone = new WC_Shipping_Zone( $zone_id );
+$zone->set_zone_name( 'United Kingdom' );
+$zone->set_zone_order( 1 );
+$zone->set_locations(
+	array(
+		array(
+			'code' => 'GB',
+			'type' => 'country',
+		),
+	)
+);
+$zone->save();
+foreach ( array_keys( $zone->get_shipping_methods() ) as $instance_id ) {
+	$zone->delete_shipping_method( $instance_id );
+}
+$methods = array(
+	array( 'flat_rate', array( 'title' => 'Standard delivery (2-3 working days)', 'cost' => '3.95', 'tax_status' => 'none' ) ),
+	array( 'flat_rate', array( 'title' => 'Express delivery (next working day)', 'cost' => '6.95', 'tax_status' => 'none' ) ),
+	array( 'free_shipping', array( 'title' => 'Free standard delivery (orders over £30)', 'requires' => 'min_amount', 'min_amount' => '30' ) ),
+	array( 'local_pickup', array( 'title' => 'Collect from one of our clinics (free)', 'cost' => '0', 'tax_status' => 'none' ) ),
+);
+foreach ( $methods as [ $type, $settings ] ) {
+	$instance_id = $zone->add_shipping_method( $type );
+	update_option( "woocommerce_{$type}_{$instance_id}_settings", array_merge( array( 'enabled' => 'yes' ), $settings ) );
+}
+update_option( 'woocommerce_ship_to_countries', 'specific' );
+update_option( 'woocommerce_specific_ship_to_countries', array( 'GB' ) );
+update_option( 'woocommerce_allowed_countries', 'specific' );
+update_option( 'woocommerce_specific_allowed_countries', array( 'GB' ) );
+update_option( 'woocommerce_enable_coupons', 'yes' );
+update_option( 'woocommerce_shipping_cost_requires_address', 'no' );
+WC_Cache_Helper::get_transient_version( 'shipping', true );
+
+// Demo offer: 10% off with code SMILE10.
+$coupon_id = wc_get_coupon_id_by_code( 'smile10' );
+$coupon    = new WC_Coupon( $coupon_id ? $coupon_id : 0 );
+$coupon->set_code( 'smile10' );
+$coupon->set_discount_type( 'percent' );
+$coupon->set_amount( 10 );
+$coupon->set_description( 'Demo offer: 10% off aftercare products.' );
+$coupon->save();
 
 // ----------------------------------------------------------------- menus
 $menus = array(
@@ -253,6 +435,7 @@ $menus = array(
 		array(
 			array( 'About', get_permalink( $page_ids['about'] ) ),
 			array( 'Privacy notice', get_permalink( $page_ids['privacy-notice'] ) ),
+			array( 'Image credits', get_permalink( $page_ids['image-credits'] ) ),
 			array( 'Book an appointment', get_permalink( $page_ids['book'] ) ),
 			array( 'Staff dashboard (demo)', home_url( '/dashboard/' ) ),
 		),

@@ -31,6 +31,7 @@ $posts = get_posts(
 		<?php foreach ( $posts as $post ) : ?>
 			<?php $api = $by_slug[ get_post_meta( $post->ID, 'sd_api_slug', true ) ] ?? null; ?>
 			<article class="card">
+				<?php synergy_theme_card_image( $post ); ?>
 				<div class="card-body">
 					<h2 class="h3"><a class="card-link" href="<?php echo esc_url( get_permalink( $post ) ); ?>"><?php echo esc_html( get_the_title( $post ) ); ?></a></h2>
 					<?php if ( $api ) : ?>

@@ -8,7 +8,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SYNERGY_THEME_VERSION', '1.0.0' );
+define( 'SYNERGY_THEME_VERSION', '1.1.0' );
 
 add_action(
 	'after_setup_theme',
@@ -89,6 +89,46 @@ function synergy_theme_book_url( array $args = array() ): string {
 }
 
 /**
+ * Card photo (decorative: the card's heading already names it), lazy-loaded, 16:9 crop by CSS.
+ * Falls back to a lettered tile when a post has no featured image.
+ *
+ * @param WP_Post $post Post.
+ */
+function synergy_theme_card_image( WP_Post $post ): void {
+	if ( has_post_thumbnail( $post ) ) {
+		echo '<div class="card-media">' . get_the_post_thumbnail(
+			$post,
+			'medium_large',
+			array(
+				'alt'     => '',
+				'loading' => 'lazy',
+				'sizes'   => '(max-width: 639px) 100vw, (max-width: 1199px) 50vw, 400px',
+			)
+		) . '</div>';
+		return;
+	}
+	printf( '<div class="card-media card-media-fallback" aria-hidden="true"><span>%s</span></div>', esc_html( mb_substr( $post->post_title, 0, 1 ) ) );
+}
+
+/**
+ * Large photo at the top of a single treatment/clinic page.
+ */
+function synergy_theme_feature_image(): void {
+	if ( has_post_thumbnail() ) {
+		echo '<figure class="feature-image">';
+		the_post_thumbnail(
+			'large',
+			array(
+				'fetchpriority' => 'high',
+				'loading'       => 'eager',
+				'sizes'         => '(max-width: 899px) 100vw, 760px',
+			)
+		);
+		echo '</figure>';
+	}
+}
+
+/**
  * Render a treatment card.
  *
  * @param WP_Post $post Treatment post.
@@ -98,7 +138,7 @@ function synergy_theme_treatment_card( WP_Post $post ): void {
 	$price = synergy_theme_price( get_post_meta( $post->ID, 'sd_price_from', true ) );
 	?>
 	<article class="card treatment-card">
-		<div class="card-media" aria-hidden="true"><span><?php echo esc_html( mb_substr( $post->post_title, 0, 1 ) ); ?></span></div>
+		<?php synergy_theme_card_image( $post ); ?>
 		<div class="card-body">
 			<?php if ( $terms && ! is_wp_error( $terms ) ) : ?>
 				<p class="eyebrow"><?php echo esc_html( $terms[0]->name ); ?></p>
@@ -135,3 +175,44 @@ function synergy_theme_fallback_menu(): void {
 remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
 remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
+
+/**
+ * Header cart link with item count. Without it, shoppers had no way to reach the cart or
+ * checkout after adding a product.
+ */
+function synergy_theme_cart_link(): void {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return;
+	}
+	$count = WC()->cart->get_cart_contents_count();
+	printf(
+		'<a class="header-cart" href="%1$s"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg><span class="header-cart-label">%2$s</span><span class="header-cart-count" data-count="%3$d">%4$s</span></a>',
+		esc_url( wc_get_cart_url() ),
+		esc_html__( 'Cart', 'synergy-theme' ),
+		(int) $count,
+		/* translators: %d: number of items in the cart */
+		'<span class="screen-reader-text">' . esc_html( sprintf( _n( '%d item', '%d items', $count, 'synergy-theme' ), $count ) ) . '</span><span aria-hidden="true">' . (int) $count . '</span>'
+	);
+}
+
+// Refresh the header cart after AJAX "Add to cart" (WooCommerce cart fragments).
+add_filter(
+	'woocommerce_add_to_cart_fragments',
+	static function ( array $fragments ): array {
+		ob_start();
+		synergy_theme_cart_link();
+		$fragments['a.header-cart'] = ob_get_clean();
+		return $fragments;
+	}
+);
+
+// Cart fragments are not loaded by default in recent WooCommerce versions.
+add_action(
+	'wp_enqueue_scripts',
+	static function () {
+		if ( function_exists( 'WC' ) ) {
+			wp_enqueue_script( 'wc-cart-fragments' );
+		}
+	},
+	20
+);

@@ -48,12 +48,25 @@ $products   = function_exists( 'wc_get_products' ) ? wc_get_products(
 				<li><?php esc_html_e( 'Evening appointments', 'synergy-theme' ); ?></li>
 			</ul>
 		</div>
-		<div class="hero-art" aria-hidden="true">
-			<svg viewBox="0 0 400 320" role="presentation" focusable="false">
-				<circle cx="200" cy="160" r="150" fill="var(--color-primary-50)"/>
-				<path d="M150 90c-30 0-50 25-45 60 4 30 15 55 22 90 4 20 26 22 30 2l10-50c3-12 23-12 26 0l10 50c4 20 26 18 30-2 7-35 18-60 22-90 5-35-15-60-45-60-17 0-25 10-30 10s-13-10-30-10z" fill="#fff" stroke="var(--color-primary)" stroke-width="6" stroke-linejoin="round"/>
-				<path d="M265 70l8 16 16 8-16 8-8 16-8-16-16-8 16-8z" fill="var(--color-accent)"/>
-			</svg>
+		<div class="hero-art">
+			<?php
+			$hero = (int) get_option( 'synergy_hero_image' );
+			if ( $hero ) {
+				// The largest image on the page: load it first (LCP), never lazily.
+				echo wp_get_attachment_image(
+					$hero,
+					'large',
+					false,
+					array(
+						'class'         => 'hero-photo',
+						'fetchpriority' => 'high',
+						'loading'       => 'eager',
+						'sizes'         => '(max-width: 799px) 100vw, 45vw',
+					)
+				);
+			}
+			?>
+			<p class="hero-badge"><strong><?php esc_html_e( 'Same-week', 'synergy-theme' ); ?></strong> <?php esc_html_e( 'consultations', 'synergy-theme' ); ?></p>
 		</div>
 	</div>
 </section>
@@ -94,6 +107,7 @@ $products   = function_exists( 'wc_get_products' ) ? wc_get_products(
 		<div class="card-grid card-grid-3">
 			<?php foreach ( $clinics as $clinic ) : ?>
 				<article class="card">
+					<?php synergy_theme_card_image( $clinic ); ?>
 					<div class="card-body">
 						<h3><a class="card-link" href="<?php echo esc_url( get_permalink( $clinic ) ); ?>"><?php echo esc_html( get_the_title( $clinic ) ); ?></a></h3>
 						<p><?php echo esc_html( get_the_excerpt( $clinic ) ); ?></p>

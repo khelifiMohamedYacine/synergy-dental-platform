@@ -108,26 +108,78 @@ test('3. the overview shows analytics computed from the data', async ({ page }) 
   await expectAccessible(page, { exclude: ['.recharts-wrapper'] })
 })
 
-test('4. a shopper buys with the demo payment method', async ({ page }) => {
+test('4. a shopper uses the cart, an offer, delivery options and the card form', async ({ page }) => {
+  test.setTimeout(120_000)
   await page.goto('/shop/')
   await expect(page.getByText('Demo store: no real payments or deliveries.')).toBeVisible()
+  await expect(page.getByText(/use code SMILE10/)).toBeVisible()
+  await page.screenshot(shots('shop'))
   await page.getByRole('link', { name: /Aligner Cleaning Crystals/ }).first().click()
   await expect(page.getByText('Recommended after:')).toBeVisible()
   await page.locator('form.cart').getByRole('button', { name: 'Add to cart' }).click()
-  await page.getByRole('link', { name: 'View cart' }).first().click()
+
+  // The header cart shows the item and leads to the cart (it was missing before).
+  const headerCart = page.locator('a.header-cart')
+  await expect(headerCart).toContainText('1 item')
+  await headerCart.click()
+  await expect(page).toHaveURL(/\/cart\//)
+  await page.getByPlaceholder('Coupon code').fill('SMILE10')
+  await page.getByRole('button', { name: 'Apply coupon' }).click()
+  await expect(page.getByText('Coupon code applied successfully.')).toBeVisible()
   await page.getByRole('link', { name: /Proceed to checkout/ }).click()
 
-  await page.getByLabel('First name').fill('Demo')
-  await page.getByLabel('Last name').fill('Shopper')
+  await page.locator('#billing_first_name').fill('Demo')
+  await page.locator('#billing_last_name').fill('Shopper')
   await page.locator('#billing_address_1').fill('1 Example Street')
   await page.locator('#billing_city').fill('Leeds')
   await page.locator('#billing_postcode').fill('LS1 4AB')
   await page.locator('#billing_phone').fill('07700 900654')
   await page.locator('#billing_email').fill(`shopper.${unique}@example.test`)
-  await expect(page.getByText('Demo payment (no money is taken)')).toBeVisible()
+
+  // Delivery options, including collection from a clinic (which then needs a clinic).
+  const methods = page.locator('#shipping_method')
+  await expect(methods.getByText('Standard delivery (2-3 working days)')).toBeVisible()
+  await expect(methods.getByText('Express delivery (next working day)')).toBeVisible()
+  await methods.getByLabel(/Collect from one of our clinics/).check()
+  const clinicPicker = page.locator('#sd_collection_clinic')
+  await expect(clinicPicker).toBeVisible()
+
+  // Card form: a real-looking card number is refused (only test cards are accepted).
+  await page.locator('#sd_card_name').fill('Demo Shopper')
+  await page.locator('#sd_card_number').fill('4111 1111 1111 1111')
+  await page.locator('#sd_card_expiry').fill('12/34')
+  await page.locator('#sd_card_cvc').fill('123')
+  await page.getByRole('button', { name: 'Place order' }).click()
+  const errors = page.locator('.woocommerce-error')
+  await expect(errors).toContainText('only test cards are accepted')
+  await expect(errors).toContainText('Choose the clinic you will collect your order from.')
+
+  await clinicPicker.selectOption('parkside')
+  await page.locator('#sd_card_number').fill('4242 4242 4242 4242')
+  await page.screenshot(shots('shop-checkout'))
   await page.getByRole('button', { name: 'Place order' }).click()
   await expect(page.getByText(/Thank you\. Your order has been received/)).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText('Collect from:')).toBeVisible()
+  await expect(page.getByText(/Visa •••• 4242/)).toBeVisible()
   await page.screenshot(shots('shop-order-received'))
+})
+
+test('website pages show photography and pass accessibility checks', async ({ page }) => {
+  await page.goto('/about/')
+  await expect(page.locator('.about-photo img')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Careful dentistry, explained clearly')
+  await page.screenshot(shots('website-about'))
+  await expectAccessible(page)
+
+  await page.goto('/clinics/')
+  await expect(page.locator('.card-media img')).toHaveCount(4)
+  await page.screenshot(shots('website-clinics'))
+
+  await page.goto('/treatments/')
+  const images = page.locator('.card-media img')
+  await expect(images.first()).toBeVisible()
+  expect(await images.count()).toBe(12)
+  await expectAccessible(page)
 })
 
 test('5. admins see the shop panel and manage users; roles are enforced', async ({ page }) => {

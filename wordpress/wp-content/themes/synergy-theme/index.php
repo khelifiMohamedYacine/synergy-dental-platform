@@ -8,7 +8,11 @@
 defined( 'ABSPATH' ) || exit;
 get_header();
 ?>
-<div class="container container-narrow">
+<?php
+// Cart, checkout and account pages need the full width for their two-column layouts.
+$is_shop_page = function_exists( 'is_woocommerce' ) && ( is_cart() || is_checkout() || is_account_page() );
+?>
+<div class="container <?php echo $is_shop_page ? 'shop-page' : 'container-narrow'; ?>">
 	<?php if ( have_posts() ) : ?>
 		<?php if ( ! is_singular() ) : ?>
 			<header class="page-header"><h1><?php echo esc_html( wp_strip_all_tags( get_the_archive_title() ) ); ?></h1></header>

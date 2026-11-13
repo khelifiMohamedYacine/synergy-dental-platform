@@ -37,6 +37,7 @@ while ( have_posts() ) :
 		<div class="with-aside">
 			<article class="entry">
 				<h1><?php the_title(); ?></h1>
+				<?php synergy_theme_feature_image(); ?>
 				<p class="lead"><?php echo esc_html( (string) get_post_meta( $post_id, 'sd_summary', true ) ); ?></p>
 				<div class="entry-content"><?php the_content(); ?></div>
 				<?php if ( $faqs ) : ?>

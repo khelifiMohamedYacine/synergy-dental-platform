@@ -43,6 +43,7 @@ while ( have_posts() ) :
 		<div class="with-aside">
 			<article class="entry">
 				<h1><?php the_title(); ?></h1>
+				<?php synergy_theme_feature_image(); ?>
 				<div class="entry-content"><?php the_content(); ?></div>
 				<?php if ( $treatments ) : ?>
 					<h2><?php esc_html_e( 'Treatments at this clinic', 'synergy-theme' ); ?></h2>

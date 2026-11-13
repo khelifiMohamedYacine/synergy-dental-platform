@@ -38,6 +38,7 @@ defined( 'ABSPATH' ) || exit;
 			);
 			?>
 		</nav>
+		<?php synergy_theme_cart_link(); ?>
 		<a class="btn btn-small header-cta" href="<?php echo esc_url( synergy_theme_book_url() ); ?>"><?php esc_html_e( 'Book', 'synergy-theme' ); ?></a>
 	</div>
 </header>
