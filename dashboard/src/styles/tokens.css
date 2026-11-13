@@ -1,0 +1,58 @@
+/* Design tokens — docs/design/ui-design.md §2. Shared vocabulary with the WordPress theme. */
+:root {
+  --color-bg: #faf8f5;
+  --color-surface: #ffffff;
+  --color-text: #1b2a2f;
+  --color-text-muted: #56656a;
+  --color-primary: #0e5a63;
+  --color-primary-hover: #0a464d;
+  --color-primary-50: #e6f2f2;
+  --color-accent: #b5762e;
+  --color-accent-text: #8a5418;
+  --color-border: #c9d3d5;
+  --color-input-border: #7c8b90;
+  --color-success: #1e7a46;
+  --color-error: #b42318;
+  --color-error-bg: #fdecea;
+  --color-warning-text: #8a5300;
+  --color-warning-bg: #fff6e5;
+
+  /* Status badges: a text label is always shown, colour is never the only signal. */
+  --status-new-bg: #e6f2f2;
+  --status-new-fg: #0e5a63;
+  --status-contacted-bg: #e8effa;
+  --status-contacted-fg: #1d4f91;
+  --status-qualified-bg: #f0ebf8;
+  --status-qualified-fg: #5b3a99;
+  --status-booked-bg: #e7f4ec;
+  --status-booked-fg: #1e7a46;
+  --status-closed-bg: #eef1f2;
+  --status-closed-fg: #56656a;
+
+  --chart-1: #0e5a63;
+  --chart-2: #b5762e;
+
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --font-body: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(16 42 47 / 0.06), 0 2px 8px rgb(16 42 47 / 0.06);
+  --motion: 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0ms linear;
+  }
+}
