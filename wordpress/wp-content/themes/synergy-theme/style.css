@@ -1,0 +1,13 @@
+/*
+Theme Name:        Synergy Theme (demo)
+Description:       Custom classic theme for the Synergy Dental technical demonstration. Fictional content only; not affiliated with Synergy Dental Group.
+Version:           1.0.0
+Requires at least: 6.5
+Requires PHP:      8.1
+Author:            Independent demo project
+License:           GPL-2.0-or-later
+Text Domain:       synergy-theme
+Tags:              custom-menu, accessibility-ready, e-commerce
+*/
+
+/* Styles live in assets/css/main.css (enqueued in functions.php). */

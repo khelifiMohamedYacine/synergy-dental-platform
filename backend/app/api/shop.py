@@ -40,6 +40,9 @@ def _fetch_orders() -> list[dict]:
             f"{settings.wc_base_url.rstrip('/')}/wp-json/wc/v3/orders",
             params={"after": since, "per_page": 100, "orderby": "date", "order": "desc"},
             auth=(settings.wc_consumer_key, settings.wc_consumer_secret),
+            # Internal Docker network call. WooCommerce only accepts Basic auth when is_ssl()
+            # is true; WordPress trusts X-Forwarded-Proto (see WORDPRESS_CONFIG_EXTRA).
+            headers={"X-Forwarded-Proto": "https"},
             timeout=TIMEOUT_SECONDS,
         )
         response.raise_for_status()

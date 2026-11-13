@@ -89,17 +89,52 @@ services:
 
   wordpress:
     image: wordpress:php8.3-apache
-    environment:
+    environment: &wp-env
       WORDPRESS_DB_HOST: mariadb
       WORDPRESS_DB_NAME: ${WP_DB_NAME}
       WORDPRESS_DB_USER: ${WP_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD}
-    volumes:
+      WP_URL: ${WP_URL}
+      SYNERGY_API_URL: ${SYNERGY_API_URL}
+      SERVICE_API_KEY: ${SERVICE_API_KEY}
+      WORDPRESS_CONFIG_EXTRA: |
+        /* Behind Caddy: trust its X-Forwarded-Proto so is_ssl() is correct. */
+        if (($$_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+        define('WP_HOME', getenv('WP_URL'));
+        define('WP_SITEURL', getenv('WP_URL'));
+        define('DISALLOW_FILE_EDIT', true);
+        define('WP_ENVIRONMENT_TYPE', 'production');
+    volumes: &wp-volumes
       - wordpress_core:/var/www/html
       - ./wordpress/wp-content/themes/synergy-theme:/var/www/html/wp-content/themes/synergy-theme
       - ./wordpress/wp-content/plugins/synergy-integration:/var/www/html/wp-content/plugins/synergy-integration
     depends_on:
       mariadb:
+        condition: service_healthy
+
+  # One-off: install and configure WordPress + WooCommerce and the demo content (idempotent).
+  wpcli:
+    image: wordpress:cli-php8.3
+    user: "33:33"
+    environment:
+      <<: *wp-env
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      WC_CONSUMER_KEY: ${WC_CONSUMER_KEY}
+      WC_CONSUMER_SECRET: ${WC_CONSUMER_SECRET}
+    volumes:
+      - wordpress_core:/var/www/html
+      - ./wordpress/wp-content/themes/synergy-theme:/var/www/html/wp-content/themes/synergy-theme
+      - ./wordpress/wp-content/plugins/synergy-integration:/var/www/html/wp-content/plugins/synergy-integration
+      - ./wordpress/provision:/provision:ro
+    command: ["sh", "/provision/provision.sh"]
+    depends_on:
+      wordpress:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+      api:
         condition: service_healthy
 
 volumes:
