@@ -3,7 +3,7 @@
 Legend: `[x]` done and verified · `[~]` in progress · `[ ]` not started. An item is only ticked once
 it is implemented **and** tested or reviewed.
 
-_Last updated: 2026-11-13 (Phase 1 closed; Phase 2 started)_
+_Last updated: 2026-11-13 (Phase 2: repo + Docker skeleton running)_
 
 ## Phase 1 – Research and planning
 - [~] Analyse job description: **blocked**, advert page could not be fetched; awaiting text from owner
@@ -17,8 +17,8 @@ _Last updated: 2026-11-13 (Phase 1 closed; Phase 2 started)_
 
 ## Environment
 - [x] Git 2.54, Node 24, npm 11, Python 3.14, GitHub CLI present
-- [ ] WSL 2 installed (owner installing) (checked 2026-11-13: not installed; `wsl` reports `REGDB_E_CLASSNOTREG`; hypervisor present, 32 GB RAM, ~815 GB free)
-- [ ] Docker Desktop installed and `docker run hello-world` verified
+- [x] WSL 2 installed (verified 2026-11-13: WSL 3.0.5.0, kernel 6.18.58.1-1)
+- [x] Docker Desktop installed and `docker run hello-world` verified (2026-11-13: Engine 29.9.3, Compose v5.7.0, WSL 2 backend)
 - [x] Final repository location agreed: `C:\dev\synergy-dental-platform`
 - [x] Git repository initialised (branch `main`)
 - [ ] GitHub remote created (needs owner go-ahead; repo will be public)
@@ -31,7 +31,7 @@ _Last updated: 2026-11-13 (Phase 1 closed; Phase 2 started)_
 - [~] Full ERD + table descriptions (doc 04 draft; awaiting owner review)
 - [~] API contract (doc 05 draft; awaiting owner review)
 - [x] `.gitignore`, `.gitattributes`, `.env.example`
-- [ ] Repo skeleton, docker-compose skeleton, CI skeleton (waits for Docker)
+- [x] Repo skeleton, docker-compose skeleton, CI skeleton (2026-11-13: `docker compose up --build` starts all 6 services; API `/health` + `/health/ready` verified through Caddy incl. 503 with DB stopped; backend 2 pytest + ruff clean; dashboard 2 Vitest tests, lint, build pass. CI workflow written, not yet run on GitHub)
 
 ## Phase 3 – Backend
 - [ ] Models + Alembic migrations · [ ] Seed data · [ ] Auth + RBAC · [ ] Enquiry endpoints

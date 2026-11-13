@@ -27,7 +27,7 @@ email, user-management UI, cloud deployment (replaced by documented deployment s
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Docker Desktop not yet installed (Windows) | Blocks Phase 2 | Install Docker Desktop with WSL 2 before Phase 2 |
+| Docker Desktop not yet installed (Windows) | Blocks Phase 2 | **Resolved:** Docker Desktop 29.9.3 on WSL 2 verified with `hello-world` (2026-11-13) |
 | Project folder is inside OneDrive and its name contains spaces and an en dash | OneDrive syncing `node_modules` and Docker volumes causes slowness and file-lock errors; some tools mishandle the path | **Resolved:** repo moved to `C:\dev\synergy-dental-platform` (2026-11-13) |
 | WordPress setup is manual and hard to reproduce | Reviewers can't run it | Provision entirely with WP-CLI scripts run on container start |
 | Scope creep | Late delivery | MVP list above; checklist reviewed every phase |

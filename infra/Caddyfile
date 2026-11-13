@@ -1,0 +1,17 @@
+# Local development: one origin (http://localhost:8080) for the whole platform (ADR-05).
+# In production, replace ":80" with the real domain and Caddy obtains TLS automatically.
+:80 {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle /dashboard* {
+		reverse_proxy dashboard:5173
+	}
+
+	handle {
+		reverse_proxy wordpress:80
+	}
+}
