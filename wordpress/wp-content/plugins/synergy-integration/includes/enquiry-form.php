@@ -229,8 +229,9 @@ function synergy_enquiry_form_shortcode(): string {
 	$state  = $GLOBALS['synergy_form_state'] ?? null;
 	$values = $state['values'] ?? array(
 		'enquiry_type'   => 'APPOINTMENT',
-		'treatment_slug' => isset( $_GET['treatment'] ) ? sanitize_key( wp_unslash( $_GET['treatment'] ) ) : '',
-		'clinic_slug'    => isset( $_GET['clinic'] ) ? sanitize_key( wp_unslash( $_GET['clinic'] ) ) : '',
+		// Prefixed: 'treatment'/'clinic' are the post types' query vars and would hijack the request.
+		'treatment_slug' => isset( $_GET['sd_treatment'] ) ? sanitize_key( wp_unslash( $_GET['sd_treatment'] ) ) : '',
+		'clinic_slug'    => isset( $_GET['sd_clinic'] ) ? sanitize_key( wp_unslash( $_GET['sd_clinic'] ) ) : '',
 	);
 	// phpcs:enable
 	$errors = $state['errors'] ?? array();

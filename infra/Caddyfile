@@ -7,6 +7,9 @@
 		reverse_proxy api:8000
 	}
 
+	# The SPA lives under /dashboard/; without the slash, refreshes would miss the app.
+	redir /dashboard /dashboard/ 308
+
 	handle /dashboard* {
 		reverse_proxy dashboard:5173
 	}

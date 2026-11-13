@@ -937,3 +937,8 @@ p.demo_store {
   padding-top: var(--space-4);
   font-size: 0.875rem;
 }
+
+/* Plain pages (index.php): breathing room under the sticky header. */
+.site-main > .container-narrow {
+  padding-top: var(--space-7);
+}

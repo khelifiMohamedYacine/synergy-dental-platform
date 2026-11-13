@@ -9,6 +9,8 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
+    // File events from a Windows bind mount do not reach the container; poll there instead.
+    watch: process.env.VITE_POLL ? { usePolling: true, interval: 300 } : undefined,
     // When running Vite on the host (outside Docker), forward API calls to the local API.
     proxy: { '/api': process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8000' },
   },

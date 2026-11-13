@@ -73,12 +73,19 @@ function synergy_theme_price( $pence ): string {
 /**
  * URL of the booking page, optionally pre-selecting a treatment or clinic.
  *
- * @param array $args Query args such as treatment or clinic slug.
+ * The parameters are prefixed (sd_treatment / sd_clinic) because "treatment" and "clinic" are
+ * the post types' own query variables: /book/?treatment=x would load the treatment page instead.
+ *
+ * @param array $args Keys 'treatment' and/or 'clinic' with API slugs.
  */
 function synergy_theme_book_url( array $args = array() ): string {
-	$page = get_page_by_path( 'book' );
-	$url  = $page ? get_permalink( $page ) : home_url( '/book/' );
-	return add_query_arg( $args, $url );
+	$page  = get_page_by_path( 'book' );
+	$url   = $page ? get_permalink( $page ) : home_url( '/book/' );
+	$query = array();
+	foreach ( $args as $key => $value ) {
+		$query[ 'sd_' . $key ] = $value;
+	}
+	return add_query_arg( $query, $url );
 }
 
 /**

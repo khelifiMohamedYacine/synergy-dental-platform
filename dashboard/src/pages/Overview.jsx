@@ -41,10 +41,12 @@ function Kpi({ label, value, hint }) {
 
 function Panel({ title, state, children, tableView }) {
   const [asTable, setAsTable] = useState(false)
+  // ids cannot contain spaces: aria-labelledby treats a space as a list separator.
+  const headingId = `panel-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
   return (
-    <section className="card panel" aria-labelledby={`${title}-h`}>
+    <section className="card panel" aria-labelledby={headingId}>
       <div className="panel-head">
-        <h2 id={`${title}-h`}>{title}</h2>
+        <h2 id={headingId}>{title}</h2>
         {tableView && state.data && (
           <button type="button" className="btn-link" aria-pressed={asTable} onClick={() => setAsTable((v) => !v)}>
             {asTable ? 'View as chart' : 'View as table'}
