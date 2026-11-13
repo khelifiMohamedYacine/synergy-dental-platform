@@ -7,8 +7,9 @@
 
 ## Status
 
-**Phase 1 – Research and planning: complete (architecture approved 2026-11-13).**
-**Phase 2 – Design: in progress.** The repository and Docker Compose skeleton run; no business features yet.
+**Phases 1–6 complete; Phase 8 deployment prepared.** The business API, staff dashboard,
+WordPress site, WooCommerce shop and their integration are built and tested
+(66 API tests, 14 dashboard tests, 6 end-to-end journeys with accessibility checks).
 See [`docs/PROJECT_CHECKLIST.md`](docs/PROJECT_CHECKLIST.md) for live progress and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) for the development plan.
 
@@ -40,7 +41,28 @@ docker compose up --build
 | http://localhost:8080/api/v1/health | FastAPI liveness (`/health/ready` also checks PostgreSQL) |
 | http://localhost:8080/api/v1/docs | OpenAPI docs |
 
-Tests: `docker compose exec api pytest` · `cd dashboard && npm test`
+First start takes a few minutes: the `migrate` service seeds 5,000 fictional enquiries and the
+`wpcli` service installs WordPress + WooCommerce and the demo content.
+
+Demo logins (local): `admin@example.test` / `SEED_ADMIN_PASSWORD`, `staff@example.test` /
+`SEED_STAFF_PASSWORD` (values from your `.env`). WordPress admin: `/wp-admin/` with `WP_ADMIN_USER`.
+
+Tests:
+
+```sh
+docker compose exec api pytest          # API, against real PostgreSQL
+cd dashboard && npm test                # React components
+cd e2e && npx playwright test           # end-to-end journeys (needs the stack running)
+```
+
+Deployment: see [doc 10](docs/10-deployment.md).
+
+## Screenshots
+
+| Website | Staff dashboard |
+|---|---|
+| ![Home page](docs/screenshots/website-home.png) | ![Overview](docs/screenshots/dashboard-overview.png) |
+| ![Booking confirmation](docs/screenshots/website-confirmation.png) | ![Enquiry detail](docs/screenshots/dashboard-enquiry-detail.png) |
 
 ## Documentation
 
@@ -52,4 +74,5 @@ Tests: `docker compose exec api pytest` · `cd dashboard && npm test`
 | 04 | [Database Design](docs/04-database-design.md) | Draft for review |
 | 05 | [API Documentation](docs/05-api-documentation.md) | Contract draft |
 | — | [UI Design (tokens + wireframes)](docs/design/ui-design.md) | Draft for review |
-| 06–11 | Implementation, Testing, Security, Performance, Deployment, Final Report | Not started |
+| 10 | [Deployment](docs/10-deployment.md) | Implemented |
+| 06–09, 11 | Implementation, Testing, Security, Performance, Final Report | Not started |

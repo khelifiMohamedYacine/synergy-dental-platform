@@ -1,0 +1,38 @@
+# Production: one HTTPS origin for the whole platform. SITE_DOMAIN comes from .env, e.g.
+# 203-0-113-10.sslip.io; Caddy obtains and renews the Let's Encrypt certificate itself.
+{$SITE_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	redir /dashboard /dashboard/ 308
+
+	# Static React build. Unknown paths fall back to index.html (client-side routing).
+	handle_path /dashboard/* {
+		root * /srv/dashboard
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		try_files {path} /index.html
+		file_server
+	}
+
+	# WordPress (public site + shop). Block the XML-RPC endpoint, which the demo does not use.
+	handle /xmlrpc.php {
+		respond 403
+	}
+
+	handle {
+		reverse_proxy wordpress:80
+	}
+}

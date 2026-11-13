@@ -17,6 +17,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     locale: 'en-GB',
     timezoneId: 'Europe/London',
+    // For a local production test with Caddy's self-signed localhost certificate.
+    ignoreHTTPSErrors: Boolean(process.env.E2E_INSECURE_TLS),
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /mobile\.spec\.js/ },

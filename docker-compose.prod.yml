@@ -1,0 +1,154 @@
+# Production stack (single VM). Usage on the server:
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Differences from the dev stack: HTTPS on 80/443, static dashboard inside Caddy, no source
+# bind mounts except the WordPress theme/plugin, no hot reload, only Caddy is published,
+# restart policies, log rotation.
+
+name: synergy
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-wp-env: &wp-env
+  WORDPRESS_DB_HOST: mariadb
+  WORDPRESS_DB_NAME: ${WP_DB_NAME}
+  WORDPRESS_DB_USER: ${WP_DB_USER}
+  WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD}
+  WP_URL: ${WP_URL}
+  SYNERGY_API_URL: ${SYNERGY_API_URL}
+  SERVICE_API_KEY: ${SERVICE_API_KEY}
+  WORDPRESS_CONFIG_EXTRA: |
+    if (($$_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+    define('WP_HOME', getenv('WP_URL'));
+    define('WP_SITEURL', getenv('WP_URL'));
+    define('DISALLOW_FILE_EDIT', true);
+    define('DISALLOW_FILE_MODS', true);
+    define('WP_ENVIRONMENT_TYPE', 'production');
+    define('FORCE_SSL_ADMIN', true);
+
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: infra/caddy.Dockerfile
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - wordpress
+    logging: *logging
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *logging
+
+  migrate:
+    build: ./backend
+    env_file: .env
+    command: ["sh", "-c", "alembic upgrade head && python -m app.seed"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      API_ENV: production
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000",
+              "--proxy-headers", "--forwarded-allow-ips", "*"]  # only Caddy can reach it
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    logging: *logging
+
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${WP_DB_NAME}
+      MARIADB_USER: ${WP_DB_USER}
+      MARIADB_PASSWORD: ${WP_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${WP_DB_ROOT_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *logging
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    restart: unless-stopped
+    environment: *wp-env
+    volumes:
+      - wordpress_core:/var/www/html
+      - ./wordpress/wp-content/themes/synergy-theme:/var/www/html/wp-content/themes/synergy-theme:ro
+      - ./wordpress/wp-content/plugins/synergy-integration:/var/www/html/wp-content/plugins/synergy-integration:ro
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    logging: *logging
+
+  wpcli:
+    image: wordpress:cli-php8.3
+    user: "33:33"
+    environment:
+      <<: *wp-env
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      WC_CONSUMER_KEY: ${WC_CONSUMER_KEY}
+      WC_CONSUMER_SECRET: ${WC_CONSUMER_SECRET}
+      # Provisioning installs WooCommerce, which DISALLOW_FILE_MODS would block in this container.
+      WORDPRESS_CONFIG_EXTRA: ""
+    volumes:
+      - wordpress_core:/var/www/html
+      - ./wordpress/wp-content/themes/synergy-theme:/var/www/html/wp-content/themes/synergy-theme:ro
+      - ./wordpress/wp-content/plugins/synergy-integration:/var/www/html/wp-content/plugins/synergy-integration:ro
+      - ./wordpress/provision:/provision:ro
+    command: ["sh", "/provision/provision.sh"]
+    depends_on:
+      wordpress:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+      api:
+        condition: service_started
+    logging: *logging
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  mariadb_data:
+  wordpress_core:

@@ -3,7 +3,7 @@
 Legend: `[x]` done and verified · `[~]` in progress · `[ ]` not started. An item is only ticked once
 it is implemented **and** tested or reviewed.
 
-_Last updated: 2026-11-13 (Phase 2: repo + Docker skeleton running)_
+_Last updated: 2026-11-13 (Phases 3–6 done; deployment prepared, waiting for the server)_
 
 ## Phase 1 – Research and planning
 - [~] Analyse job description: **blocked**, advert page could not be fetched; awaiting text from owner
@@ -34,20 +34,20 @@ _Last updated: 2026-11-13 (Phase 2: repo + Docker skeleton running)_
 - [x] Repo skeleton, docker-compose skeleton, CI skeleton (2026-11-13: `docker compose up --build` starts all 6 services; API `/health` + `/health/ready` verified through Caddy incl. 503 with DB stopped; backend 2 pytest + ruff clean; dashboard 2 Vitest tests, lint, build pass. first GitHub Actions run green: backend, dashboard, compose)
 
 ## Phase 3 – Backend
-- [ ] Models + Alembic migrations · [ ] Seed data · [ ] Auth + RBAC · [ ] Enquiry endpoints
-- [ ] Status workflow · [ ] Clinics/treatments · [ ] Analytics · [ ] Rate limiting · [ ] Pytest suite · [ ] Postman collection
+- [x] Models + Alembic migrations · [x] Seed data · [x] Auth + RBAC · [x] Enquiry endpoints
+- [x] Status workflow · [x] Clinics/treatments · [x] Analytics · [x] Rate limiting · [x] Pytest suite (66 tests, real PostgreSQL) · [ ] Postman collection
 
 ## Phase 4 – Dashboard
-- [ ] Auth flow · [ ] Enquiry list/filter/paginate · [ ] Detail + status · [ ] CRUD screens · [ ] Charts · [ ] RTL tests
+- [x] Auth flow · [x] Enquiry list/filter/paginate · [x] Detail + status · [x] CRUD screens · [x] Charts · [x] RTL tests (14)
 
 ## Phase 5 – WordPress & WooCommerce
-- [ ] WP-CLI provisioning · [ ] Theme · [ ] Plugin: CPTs + meta · [ ] Enquiry form + API client · [ ] Woo products + demo gateway · [ ] Woo customisations · [ ] SEO/sitemap
+- [x] WP-CLI provisioning · [x] Theme · [x] Plugin: CPTs + meta · [x] Enquiry form + API client · [x] Woo products + demo gateway · [x] Woo customisations · [~] SEO (meta, FAQ schema; sitemap off while the demo is noindex)
 
 ## Phase 6 – Integration
-- [ ] Shop panel via WC REST · [ ] Slug sync check · [ ] 5 Playwright journeys
+- [x] Shop panel via WC REST · [x] Slug sync check · [x] 5 Playwright journeys + mobile check, axe accessibility checks
 
 ## Phase 7 – QA
 - [ ] Full test run recorded · [ ] Security checklist · [ ] Lighthouse measurements · [ ] Accessibility fixes
 
 ## Phase 8 – Deployment and presentation
-- [ ] Cloud deployment · [ ] Docs 10–11 · [ ] Screenshots · [ ] Demo video · [ ] Presentation notes
+- [~] Cloud deployment (prod stack verified locally; waiting for the Oracle VM) · [~] Docs 10 done, 11 not started · [x] Screenshots · [ ] Demo video · [ ] Presentation notes
