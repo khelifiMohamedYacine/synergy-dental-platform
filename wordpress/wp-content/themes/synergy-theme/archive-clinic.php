@@ -22,21 +22,24 @@ $posts = get_posts(
 	)
 );
 ?>
-<div class="container">
-	<header class="page-header">
+<header class="page-hero">
+	<div class="container">
 		<p class="eyebrow"><?php esc_html_e( 'Clinics', 'synergy-theme' ); ?></p>
-		<h1><?php esc_html_e( 'Find a clinic', 'synergy-theme' ); ?></h1>
-	</header>
+		<h1><?php esc_html_e( 'Find a clinic near you', 'synergy-theme' ); ?></h1>
+		<p class="lead"><?php esc_html_e( 'Every clinic offers check-ups, hygiene and emergency appointments. See each clinic for its opening hours and specialist treatments.', 'synergy-theme' ); ?></p>
+	</div>
+</header>
+<div class="container treatments-list">
 	<div class="card-grid card-grid-2">
 		<?php foreach ( $posts as $post ) : ?>
 			<?php $api = $by_slug[ get_post_meta( $post->ID, 'sd_api_slug', true ) ] ?? null; ?>
-			<article class="card">
+			<article class="card clinic-card">
 				<?php synergy_theme_card_image( $post ); ?>
 				<div class="card-body">
 					<h2 class="h3"><a class="card-link" href="<?php echo esc_url( get_permalink( $post ) ); ?>"><?php echo esc_html( get_the_title( $post ) ); ?></a></h2>
 					<?php if ( $api ) : ?>
-						<address><?php echo esc_html( implode( ', ', array_filter( array( $api['address_line1'], $api['address_line2'], $api['city'], $api['postcode'] ) ) ) ); ?></address>
-						<p><a href="tel:<?php echo esc_attr( preg_replace( '/\s+/', '', $api['phone'] ) ); ?>"><?php echo esc_html( $api['phone'] ); ?></a></p>
+						<address class="meta-line"><?php echo synergy_theme_icon( 'pin' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php echo esc_html( implode( ', ', array_filter( array( $api['address_line1'], $api['address_line2'], $api['city'], $api['postcode'] ) ) ) ); ?></address>
+						<p class="meta-line"><?php echo synergy_theme_icon( 'phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <a href="<?php echo esc_url( synergy_theme_tel( $api['phone'] ) ); ?>"><?php echo esc_html( $api['phone'] ); ?></a></p>
 					<?php endif; ?>
 					<p><?php echo esc_html( get_the_excerpt( $post ) ); ?></p>
 				</div>

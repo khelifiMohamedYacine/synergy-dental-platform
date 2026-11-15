@@ -14,14 +14,14 @@ test.describe.configure({ mode: 'serial' })
 
 test('1. visitor requests an appointment on the website', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Confident smiles')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Healthy, confident smiles')
   await page.screenshot(shots('website-home'))
   await expectAccessible(page)
 
   await page.getByRole('link', { name: 'Treatments', exact: true }).first().click()
   await page.getByRole('link', { name: 'Teeth whitening' }).click()
-  await expect(page.getByText('Price from')).toBeVisible()
-  await page.getByRole('link', { name: 'Enquire about this' }).click()
+  await expect(page.locator('.booking-price')).toContainText('£295')
+  await page.getByRole('link', { name: 'Request an appointment' }).click()
 
   // Treatment is pre-selected from the link (US-01).
   await expect(page.getByLabel('Treatment')).toHaveValue('teeth-whitening')
