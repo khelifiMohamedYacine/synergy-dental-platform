@@ -434,7 +434,10 @@ class ShopOrder(BaseModel):
 
 
 class ShopSummary(BaseModel):
-    orders_last_30_days: int
-    revenue_last_30_days_pence: int
+    paid_orders: int
+    revenue_pence: int
+    average_order_pence: int | None
+    awaiting_payment: int
+    to_fulfil: int
     currency: str = "GBP"
     recent_orders: list[ShopOrder]

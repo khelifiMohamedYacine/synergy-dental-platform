@@ -8,7 +8,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SYNERGY_THEME_VERSION', '1.1.0' );
+define( 'SYNERGY_THEME_VERSION', '2.0.0' );
 
 add_action(
 	'after_setup_theme',
@@ -216,3 +216,28 @@ add_action(
 	},
 	20
 );
+
+/**
+ * Brand mark (inline SVG, decorative: the site name is always next to it).
+ */
+function synergy_theme_logo_mark(): void {
+	echo '<svg class="logo-mark" aria-hidden="true" viewBox="0 0 40 40" width="36" height="36"><rect width="40" height="40" rx="12" fill="currentColor"/><path d="M13.5 11c-3 0-5 2.4-5 5.6 0 3.4 1.6 5.7 2.5 9.2.7 2.7 1.3 4.2 2.6 4.2 1.6 0 1.8-2.6 2.4-5 .4-1.6 1.1-2.4 2-2.4h4c.9 0 1.6.8 2 2.4.6 2.4.8 5 2.4 5 1.3 0 1.9-1.5 2.6-4.2.9-3.5 2.5-5.8 2.5-9.2 0-3.2-2-5.6-5-5.6-2.2 0-3.3 1.2-6.5 1.2S15.7 11 13.5 11Z" fill="#fff"/></svg>';
+}
+
+/**
+ * Main contact phone: the first active clinic from the business API (empty when unavailable).
+ */
+function synergy_theme_main_phone(): string {
+	if ( ! class_exists( 'Synergy_Api_Client' ) ) {
+		return '';
+	}
+	$ref = Synergy_Api_Client::reference_data();
+	return (string) ( $ref['clinics'][0]['phone'] ?? '' );
+}
+
+/**
+ * Number of published clinics (for headline facts that stay true as clinics change).
+ */
+function synergy_theme_clinic_count(): int {
+	return (int) wp_count_posts( 'clinic' )->publish;
+}

@@ -1,11 +1,12 @@
 <?php
 /**
- * Site header.
+ * Site header: contact bar, brand, navigation, cart and booking button.
  *
  * @package SynergyTheme
  */
 
 defined( 'ABSPATH' ) || exit;
+$phone = synergy_theme_main_phone();
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -16,10 +17,18 @@ defined( 'ABSPATH' ) || exit;
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip-link" href="#content"><?php esc_html_e( 'Skip to content', 'synergy-theme' ); ?></a>
+<div class="topbar">
+	<div class="container topbar-inner">
+		<p><?php esc_html_e( 'Evening and Saturday appointments available', 'synergy-theme' ); ?></p>
+		<?php if ( $phone ) : ?>
+			<p><?php esc_html_e( 'Call us', 'synergy-theme' ); ?> <a href="tel:<?php echo esc_attr( preg_replace( '/\s+/', '', $phone ) ); ?>"><?php echo esc_html( $phone ); ?></a></p>
+		<?php endif; ?>
+	</div>
+</div>
 <header class="site-header">
 	<div class="container header-inner">
 		<a class="wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-			Synergy Dental <span class="wordmark-tag"><?php esc_html_e( 'demo', 'synergy-theme' ); ?></span>
+			<?php synergy_theme_logo_mark(); ?><span class="wordmark-text"><?php bloginfo( 'name' ); ?></span>
 		</a>
 		<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
 			<span class="menu-toggle-bars" aria-hidden="true"></span>

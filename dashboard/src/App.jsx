@@ -12,6 +12,7 @@ const EnquiryDetail = lazy(() => import('./pages/EnquiryDetail.jsx'))
 const Clinics = lazy(() => import('./pages/Clinics.jsx'))
 const Treatments = lazy(() => import('./pages/Treatments.jsx'))
 const Users = lazy(() => import('./pages/Users.jsx'))
+const Shop = lazy(() => import('./pages/Shop.jsx'))
 
 const page = (element) => <Suspense fallback={<Loading />}>{element}</Suspense>
 
@@ -60,6 +61,12 @@ export default function App() {
         <Route path="appointments" element={<EnquiryList appointmentsOnly key="appointments" />} />
         <Route path="clinics" element={page(<Clinics />)} />
         <Route path="treatments" element={page(<Treatments />)} />
+        <Route
+          path="shop"
+          element={
+            <RequireAuth adminOnly>{page(<Shop />)}</RequireAuth>
+          }
+        />
         <Route
           path="users"
           element={

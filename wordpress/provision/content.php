@@ -1,9 +1,11 @@
 <?php
 /**
- * Idempotent demo content, run by provision.sh with `wp eval-file`.
+ * Idempotent starter content, run by provision.sh with `wp eval-file`.
  *
- * Treatment and clinic slugs match the business API seed (backend/app/seed.py), which is
- * checked afterwards by `wp synergy sync-check`. Everything here is fictional.
+ * Creates the site structure (pages, menus, delivery options, REST key) and starter treatment
+ * and clinic pages whose slugs match the business API seed (backend/app/seed.py), checked
+ * afterwards by `wp synergy sync-check`. The clinic group edits the wording in WordPress and the
+ * clinic details in the staff dashboard. Earlier sample products and the demo coupon are removed.
  *
  * @package SynergyIntegration
  */
@@ -42,21 +44,20 @@ $pages = array(
 	'about'          => array(
 		'About us',
 		$p(
-			'Synergy Dental (demo) is a fictional group of four dental clinics created for a software demonstration. Our imaginary teams offer everyday dentistry, cosmetic treatments and implants with clear, written prices.',
-			'This website, its clinics, people and products do not exist. It is an independent technical demonstration and is not affiliated with, commissioned by, or endorsed by Synergy Dental Group.'
+			'We are a group of four dental clinics offering everyday dentistry, cosmetic treatments and implants, with clear written prices and time to talk through your options.',
+			'Our dentists, hygienists and treatment coordinators work together across every clinic, so you get the same standard of care wherever you visit.'
 		),
 	),
 	'contact'        => array(
 		'Contact',
-		$p( 'The quickest way to reach us is the online form: we will call you back. You can also find each clinic’s (fictional) phone number on its page.' ) . "\n\n<!-- wp:shortcode -->\n[synergy_enquiry_form]\n<!-- /wp:shortcode -->",
+		$p( 'The quickest way to reach us is the online form: we will call you back. You can also find each clinic’s phone number and opening hours on its page.' ) . "\n\n<!-- wp:shortcode -->\n[synergy_enquiry_form]\n<!-- /wp:shortcode -->",
 	),
 	'book'           => array( 'Request an appointment', "<!-- wp:shortcode -->\n[synergy_enquiry_form]\n<!-- /wp:shortcode -->" ),
 	'privacy-notice' => array(
 		'Privacy notice',
 		$p(
-			'This is a demonstration site. Please enter only fictional details: use an address ending in example.test and a phone number from the 07700 900xxx range.',
 			'When you send the enquiry form, your name, email, phone number, preferred clinic, treatment, date and message are sent to our business system so staff can reply. We do not store your IP address with the enquiry. We use your details only to respond to your enquiry.',
-			'Demo data may be deleted at any time. To ask for an enquiry to be removed, use the contact form and quote your reference.'
+			'We keep enquiries only as long as we need them to respond and to meet our legal obligations. To ask for a copy of your data or for an enquiry to be removed, use the contact form and quote your reference.'
 		),
 	),
 );
@@ -75,7 +76,7 @@ update_option( 'show_on_front', 'page' );
 update_option( 'page_on_front', $page_ids['home'] );
 update_option( 'wp_page_for_privacy_policy', $page_ids['privacy-notice'] );
 
-// Classic cart/checkout shortcodes: the demo gateway is a classic gateway.
+// Classic cart/checkout shortcodes: the clinic-collection picker uses classic checkout hooks.
 foreach ( array(
 	'woocommerce_cart_page_id'     => '[woocommerce_cart]',
 	'woocommerce_checkout_page_id' => '[woocommerce_checkout]',
@@ -146,7 +147,7 @@ $treatments = array(
 		array( array( 'Will I need a crown afterwards?', 'Back teeth often do, to protect them from cracking.' ) ) ),
 	array( 'emergency-appointment', 'emergency-care', 'Emergency appointment', 'Same-day help for pain, swelling or a broken tooth.', 9500, '30 minutes',
 		'If you are in pain, have swelling or have broken a tooth, we keep appointments free every day for emergencies.',
-		array( array( 'What if it is out of hours?', 'Call NHS 111 for urgent advice outside opening hours. (In this demo, no clinic is real.)' ) ) ),
+		array( array( 'What if it is out of hours?', 'Call NHS 111 for urgent advice outside opening hours.' ) ) ),
 );
 $menu_order = 0;
 foreach ( $treatments as [ $slug, $cat, $title, $summary, $price, $duration, $body, $faqs ] ) {
@@ -184,7 +185,7 @@ foreach ( $clinics as [ $slug, $title, $city, $intro ] ) {
 			'post_name'    => $slug,
 			'post_title'   => $title,
 			'post_excerpt' => $intro,
-			'post_content' => $p( $intro, "Our (fictional) {$city} team includes dentists, a hygienist and a treatment coordinator who will guide you through your options." ),
+			'post_content' => $p( $intro, "Our {$city} team includes dentists, a hygienist and a treatment coordinator who will guide you through your options." ),
 		),
 		array(
 			'sd_api_slug' => $slug,
@@ -207,34 +208,41 @@ foreach ( $product_cats as $slug => $name ) {
 	}
 	$cat_ids[ $slug ] = (int) $term['term_id'];
 }
-$products = array(
-	// slug, name, price, category, recommended after, featured, short description
-	array( 'sensitive-toothpaste', 'Sensitive Relief Toothpaste (demo)', '6.50', 'whitening', 'teeth-whitening', true, 'Gentle fluoride toothpaste to ease sensitivity after whitening.' ),
-	array( 'whitening-top-up-gel', 'Whitening Top-up Gel (demo)', '24.00', 'whitening', 'teeth-whitening', false, 'Two syringes of top-up gel for your custom trays.' ),
-	array( 'aligner-cleaning-crystals', 'Aligner Cleaning Crystals (demo)', '14.99', 'aligners', 'clear-aligners', true, 'A month of cleaning crystals to keep aligners clear and fresh.' ),
-	array( 'aligner-case', 'Aligner Travel Case (demo)', '8.00', 'aligners', 'clear-aligners', false, 'A ventilated, pocket-sized case for your aligners.' ),
-	array( 'interdental-brushes', 'Interdental Brushes, Mixed Sizes (demo)', '5.25', 'oral-care', 'dental-implants', true, 'Soft brushes for cleaning around implants and between teeth.' ),
-	array( 'water-flosser', 'Cordless Water Flosser (demo)', '49.00', 'oral-care', 'fixed-braces', false, 'Rechargeable water flosser, ideal around braces and bridges.' ),
-	array( 'soft-toothbrush', 'Ultra-soft Toothbrush (demo)', '4.50', 'oral-care', 'hygienist', false, 'Extra-soft bristles recommended after a hygienist visit.' ),
-	array( 'fluoride-mouthwash', 'Fluoride Mouthwash 500 ml (demo)', '5.99', 'oral-care', 'white-fillings', false, 'Alcohol-free mouthwash with fluoride to help protect fillings.' ),
-);
-foreach ( $products as [ $slug, $name, $price, $cat, $after, $featured, $short ] ) {
-	$existing = get_page_by_path( $slug, OBJECT, 'product' );
-	$product  = $existing ? wc_get_product( $existing->ID ) : new WC_Product_Simple();
-	$product->set_name( $name );
-	$product->set_slug( $slug );
-	$product->set_status( 'publish' );
-	$product->set_regular_price( $price );
-	$product->set_short_description( $short );
-	$product->set_description( $short . ' This is a fictional product in a demonstration shop: nothing will be charged or delivered.' );
-	$product->set_category_ids( array( $cat_ids[ $cat ] ) );
-	$product->set_featured( $featured );
-	$product->set_virtual( false ); // Physical: checkout asks for an address and a delivery method.
-	$product->set_weight( '0.2' );
-	$product->set_manage_stock( false );
-	$product->set_stock_status( 'instock' );
-	$product->update_meta_data( '_sd_recommended_after', $after );
-	$product->save();
+// Remove the sample products (and their photos) created by earlier versions of this script.
+// The shop starts empty; products are added in the staff dashboard (Shop) or in WordPress.
+$legacy_products = array( 'sensitive-toothpaste', 'whitening-top-up-gel', 'aligner-cleaning-crystals', 'aligner-case', 'interdental-brushes', 'water-flosser', 'soft-toothbrush', 'fluoride-mouthwash' );
+foreach ( $legacy_products as $slug ) {
+	$post = get_page_by_path( $slug, OBJECT, 'product' );
+	if ( $post && str_contains( $post->post_title, '(demo)' ) ) {
+		wp_delete_post( $post->ID, true );
+	}
+}
+foreach ( get_posts(
+	array(
+		'post_type'   => 'attachment',
+		'post_status' => 'inherit',
+		'numberposts' => -1,
+		'fields'      => 'ids',
+		'meta_key'    => '_sd_media', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+	)
+) as $attachment_id ) {
+	if ( str_starts_with( (string) get_post_meta( $attachment_id, '_sd_media', true ), 'product-' ) ) {
+		wp_delete_attachment( $attachment_id, true );
+	}
+}
+// Orders paid with the old demo payment method (test cards only) were never real.
+foreach ( wc_get_orders(
+	array(
+		'limit'          => -1,
+		'payment_method' => 'synergy_demo',
+		'return'         => 'ids',
+	)
+) as $legacy_order ) {
+	wc_get_order( $legacy_order )->delete( true );
+}
+$legacy_coupon = wc_get_coupon_id_by_code( 'smile10' );
+if ( $legacy_coupon ) {
+	wp_delete_post( $legacy_coupon, true );
 }
 
 // ----------------------------------------------------------------- images
@@ -243,7 +251,12 @@ require_once ABSPATH . 'wp-admin/includes/media.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 
 $GLOBALS['sd_media_dir'] = '/provision/media';
-$credits                 = json_decode( (string) file_get_contents( $GLOBALS['sd_media_dir'] . '/credits.json' ), true );
+$credits                 = array_values(
+	array_filter(
+		json_decode( (string) file_get_contents( $GLOBALS['sd_media_dir'] . '/credits.json' ), true ),
+		static fn( $c ) => ! str_starts_with( $c['file'], 'product-' )
+	)
+);
 $GLOBALS['sd_credit_by'] = array_column( $credits, null, 'file' );
 
 /**
@@ -326,24 +339,6 @@ foreach ( $clinic_alts as $slug => $alt ) {
 		set_post_thumbnail( $post, sd_media( "clinic-{$slug}", $alt ) );
 	}
 }
-$product_alts = array(
-	'sensitive-toothpaste'      => 'Toothpaste on a toothbrush',
-	'whitening-top-up-gel'      => 'Whitening gel applicator',
-	'aligner-cleaning-crystals' => 'A cup of blue cleaning solution',
-	'aligner-case'              => 'Aligner storage case with clear trays',
-	'interdental-brushes'       => 'A reel of dental floss',
-	'water-flosser'             => 'A compact oral care device beside a bottle',
-	'soft-toothbrush'           => 'A soft-bristled toothbrush',
-	'fluoride-mouthwash'        => 'A bottle of blue mouthwash with cups',
-);
-foreach ( $product_alts as $slug => $alt ) {
-	$post = get_page_by_path( $slug, OBJECT, 'product' );
-	if ( $post ) {
-		$product = wc_get_product( $post->ID );
-		$product->set_image_id( sd_media( "product-{$slug}", $alt ) );
-		$product->save();
-	}
-}
 set_post_thumbnail( $page_ids['about'], sd_media( 'about-dentist', 'A dentist in a mask and gloves treating a patient' ) );
 update_option( 'synergy_hero_image', sd_media( 'hero', 'A dental surgeon wearing a mask treats a smiling patient' ) );
 
@@ -364,7 +359,7 @@ $page_ids['image-credits'] = sd_upsert_post(
 		'post_type'    => 'page',
 		'post_name'    => 'image-credits',
 		'post_title'   => 'Image credits',
-		'post_content' => $p( 'Photographs on this demonstration site come from Wikimedia Commons under the licences listed below. They were resized for the web. The people shown have no connection with this fictional business.' ) . "\n\n<!-- wp:html -->\n<ul class=\"credits\">{$rows}</ul>\n<!-- /wp:html -->",
+		'post_content' => $p( 'Photographs on this site come from Wikimedia Commons under the licences listed below and were resized for the web. Replace them with your own photography at any time in WordPress (Media).' ) . "\n\n<!-- wp:html -->\n<ul class=\"credits\">{$rows}</ul>\n<!-- /wp:html -->",
 	)
 );
 
@@ -409,15 +404,6 @@ update_option( 'woocommerce_enable_coupons', 'yes' );
 update_option( 'woocommerce_shipping_cost_requires_address', 'no' );
 WC_Cache_Helper::get_transient_version( 'shipping', true );
 
-// Demo offer: 10% off with code SMILE10.
-$coupon_id = wc_get_coupon_id_by_code( 'smile10' );
-$coupon    = new WC_Coupon( $coupon_id ? $coupon_id : 0 );
-$coupon->set_code( 'smile10' );
-$coupon->set_discount_type( 'percent' );
-$coupon->set_amount( 10 );
-$coupon->set_description( 'Demo offer: 10% off aftercare products.' );
-$coupon->save();
-
 // ----------------------------------------------------------------- menus
 $menus = array(
 	'Primary' => array(
@@ -437,7 +423,7 @@ $menus = array(
 			array( 'Privacy notice', get_permalink( $page_ids['privacy-notice'] ) ),
 			array( 'Image credits', get_permalink( $page_ids['image-credits'] ) ),
 			array( 'Book an appointment', get_permalink( $page_ids['book'] ) ),
-			array( 'Staff dashboard (demo)', home_url( '/dashboard/' ) ),
+			array( 'Staff sign in', home_url( '/dashboard/' ) ),
 		),
 	),
 );
@@ -464,8 +450,8 @@ foreach ( $menus as $name => [ $location, $items ] ) {
 }
 set_theme_mod( 'nav_menu_locations', $locations );
 
-// ----------------------------------------------------------------- WooCommerce read-only REST key
-// The business API reads orders with these keys (ADR-06). They come from the environment so the
+// ----------------------------------------------------------------- WooCommerce REST key
+// The business API reads orders and lets admins manage products and orders with this key (ADR-06). They come from the environment so the
 // API container can be given the same values; WooCommerce stores only a hash of the consumer key.
 $ck = (string) getenv( 'WC_CONSUMER_KEY' );
 $cs = (string) getenv( 'WC_CONSUMER_SECRET' );
@@ -474,21 +460,21 @@ if ( $ck && $cs ) {
 	$table = $wpdb->prefix . 'woocommerce_api_keys';
 	$hash  = wc_api_hash( $ck );
 	$admin = get_user_by( 'login', getenv( 'WP_ADMIN_USER' ) );
-	$wpdb->delete( $table, array( 'description' => 'Synergy business API (read-only)' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE description LIKE %s", 'Synergy business API%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$table,
 		array(
 			'user_id'         => $admin ? $admin->ID : 1,
-			'description'     => 'Synergy business API (read-only)',
-			'permissions'     => 'read',
+			'description'     => 'Synergy business API',
+			'permissions'     => 'read_write',
 			'consumer_key'    => $hash,
 			'consumer_secret' => $cs,
 			'truncated_key'   => substr( $ck, -7 ),
 		)
 	);
-	WP_CLI::log( 'WooCommerce read-only REST key configured.' );
+	WP_CLI::log( 'WooCommerce REST key configured.' );
 } else {
 	WP_CLI::warning( 'WC_CONSUMER_KEY/SECRET not set: the dashboard shop panel will show "unavailable".' );
 }
 
-WP_CLI::success( 'Demo content is in place.' );
+WP_CLI::success( 'Site content is in place.' );

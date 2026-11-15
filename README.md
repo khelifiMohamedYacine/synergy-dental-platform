@@ -1,15 +1,18 @@
-# Synergy Dental – Full-Stack Digital Platform (Technical Demonstration)
+# Synergy Dental – Full-Stack Digital Platform
 
-> **Disclaimer:** This is an independent technical demonstration built by a job applicant.
-> It is **not** affiliated with, commissioned by, or endorsed by Synergy Dental Group or any
-> related company. All clinics, people, patients, products and data are fictional.
-> No real payments are processed and no real patient health information is collected.
+Website, online shop and staff dashboard for a group of dental clinics: patients find
+treatments and clinics and request appointments; staff follow up every enquiry, see
+performance by clinic and treatment, and manage the shop's products and orders.
+
+**Taking over the platform? Start with the [handover guide](docs/HANDOVER.md).** A fresh
+installation contains no sample data: one administrator, starter clinic and treatment pages to
+edit, and an empty shop.
 
 ## Status
 
 **Phases 1–6 complete; Phase 8 deployment prepared.** The business API, staff dashboard,
 WordPress site, WooCommerce shop and their integration are built and tested
-(66 API tests, 14 dashboard tests, 6 end-to-end journeys with accessibility checks).
+(69 API tests, 14 dashboard tests, 8 end-to-end journeys with accessibility checks).
 See [`docs/PROJECT_CHECKLIST.md`](docs/PROJECT_CHECKLIST.md) for live progress and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) for the development plan.
 
@@ -18,7 +21,7 @@ See [`docs/PROJECT_CHECKLIST.md`](docs/PROJECT_CHECKLIST.md) for live progress a
 | Area | Technology | Purpose in this project |
 |---|---|---|
 | Public website / CMS | WordPress (PHP, custom theme + plugin) | Patient-facing marketing site, treatment & clinic content |
-| E-commerce | WooCommerce | Demo shop for oral-care products with simulated checkout |
+| E-commerce | WooCommerce (+ Stripe gateway) | Aftercare shop: delivery or clinic collection; card, bank transfer or pay at the clinic |
 | Business API | Python, FastAPI, Pydantic | Enquiries, auth, RBAC, analytics |
 | Business database | PostgreSQL, SQLAlchemy, Alembic | Enquiries, users, clinics, treatments, status history |
 | Staff dashboard | React (Vite), JavaScript ES6+ | Secure internal management interface |
@@ -36,23 +39,25 @@ docker compose up --build
 
 | URL | Service |
 |---|---|
-| http://localhost:8080/ | WordPress (installer until Phase 5 provisioning) |
+| http://localhost:8080/ | Website (WordPress + WooCommerce) |
 | http://localhost:8080/dashboard/ | React staff dashboard |
 | http://localhost:8080/api/v1/health | FastAPI liveness (`/health/ready` also checks PostgreSQL) |
 | http://localhost:8080/api/v1/docs | OpenAPI docs |
 
-First start takes a few minutes: the `migrate` service seeds 5,000 fictional enquiries and the
-`wpcli` service installs WordPress + WooCommerce and the demo content.
+First start takes a few minutes: the `migrate` service creates the database, starter clinics and
+treatments and the first administrator, and the `wpcli` service installs WordPress, WooCommerce
+and the Stripe gateway and creates the site pages.
 
-Demo logins (local): `admin@example.test` / `SEED_ADMIN_PASSWORD`, `staff@example.test` /
-`SEED_STAFF_PASSWORD` (values from your `.env`). WordPress admin: `/wp-admin/` with `WP_ADMIN_USER`.
+Sign in: dashboard with `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`; WordPress admin
+(`/wp-admin/`) with `WP_ADMIN_USER` / `WP_ADMIN_PASSWORD` (values from your `.env`). For sample
+data during development see [handover guide §4](docs/HANDOVER.md#4-development-data).
 
 Tests:
 
 ```sh
 docker compose exec api pytest          # API, against real PostgreSQL
 cd dashboard && npm test                # React components
-cd e2e && npx playwright test           # end-to-end journeys (needs the stack running)
+cd e2e && E2E_ADMIN_PASSWORD=… npx playwright test   # end-to-end journeys (stack running)
 ```
 
 Deployment: see [doc 10](docs/10-deployment.md).
@@ -63,6 +68,8 @@ Deployment: see [doc 10](docs/10-deployment.md).
 |---|---|
 | ![Home page](docs/screenshots/website-home.png) | ![Overview](docs/screenshots/dashboard-overview.png) |
 | ![Booking confirmation](docs/screenshots/website-confirmation.png) | ![Enquiry detail](docs/screenshots/dashboard-enquiry-detail.png) |
+| ![About](docs/screenshots/website-about.png) | ![Shop products](docs/screenshots/dashboard-shop-products.png) |
+| ![Checkout](docs/screenshots/shop-checkout.png) | ![Shop orders](docs/screenshots/dashboard-shop-orders.png) |
 
 ## Documentation
 
@@ -75,4 +82,5 @@ Deployment: see [doc 10](docs/10-deployment.md).
 | 05 | [API Documentation](docs/05-api-documentation.md) | Contract draft |
 | — | [UI Design (tokens + wireframes)](docs/design/ui-design.md) | Draft for review |
 | 10 | [Deployment](docs/10-deployment.md) | Implemented |
+| — | [Handover guide](docs/HANDOVER.md) | For the team taking over |
 | 06–09, 11 | Implementation, Testing, Security, Performance, Final Report | Not started |

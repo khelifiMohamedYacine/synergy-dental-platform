@@ -67,6 +67,37 @@ class Synergy_CLI {
 		delete_transient( Synergy_Api_Client::CACHE_KEY );
 		WP_CLI::success( 'Reference data cache cleared.' );
 	}
+
+	/**
+	 * Delete test orders: those whose billing email uses the reserved example.test domain
+	 * (automated tests and development data never use real addresses).
+	 *
+	 * @subcommand purge-test-orders
+	 */
+	public function purge_test_orders(): void {
+		$matches = array();
+		$page    = 1;
+		do { // Collect first, delete afterwards, so deleting does not shift the pages.
+			$orders = wc_get_orders(
+				array(
+					'limit'   => 100,
+					'paged'   => $page++,
+					'orderby' => 'ID',
+					'order'   => 'ASC',
+					'type'    => 'shop_order',
+				)
+			);
+			foreach ( $orders as $order ) {
+				if ( str_ends_with( strtolower( (string) $order->get_billing_email() ), '@example.test' ) ) {
+					$matches[] = $order;
+				}
+			}
+		} while ( count( $orders ) === 100 );
+		foreach ( $matches as $order ) {
+			$order->delete( true );
+		}
+		WP_CLI::success( sprintf( 'Deleted %d test orders.', count( $matches ) ) );
+	}
 }
 
 WP_CLI::add_command( 'synergy', 'Synergy_CLI' );

@@ -1,11 +1,24 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect } from '@playwright/test'
 
-export const ADMIN = { email: 'admin@example.test', password: process.env.E2E_ADMIN_PASSWORD }
-export const STAFF = { email: 'staff@example.test', password: process.env.E2E_STAFF_PASSWORD }
+import { E2E_STAFF_EMAIL } from './global-setup.js'
+
+export const ADMIN = {
+  email: process.env.E2E_ADMIN_EMAIL || 'admin@example.test',
+  get password() {
+    return process.env.E2E_ADMIN_PASSWORD
+  },
+}
+// Created by global-setup.js for this run.
+export const STAFF = {
+  email: E2E_STAFF_EMAIL,
+  get password() {
+    return process.env.E2E_STAFF_PASSWORD
+  },
+}
 
 export async function signIn(page, user) {
-  if (!user.password) throw new Error('Set E2E_ADMIN_PASSWORD / E2E_STAFF_PASSWORD')
+  if (!user.password) throw new Error('Set E2E_ADMIN_PASSWORD')
   await page.goto('/dashboard/login')
   await page.getByLabel('Email').fill(user.email)
   await page.getByLabel('Password', { exact: true }).fill(user.password)

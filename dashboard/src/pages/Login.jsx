@@ -37,10 +37,19 @@ export default function Login() {
 
   return (
     <main className="login-page">
+      <section className="login-aside" aria-hidden="true">
+        <div>
+          <p className="login-brand">Synergy Dental</p>
+          <p className="login-tagline">Enquiries, appointments, clinics and the shop, in one place.</p>
+        </div>
+        <ul>
+          <li>Follow up every enquiry on time</li>
+          <li>See bookings and conversion by clinic</li>
+          <li>Manage products and fulfil orders</li>
+        </ul>
+      </section>
       <form className="card login-card" onSubmit={onSubmit} noValidate>
-        <p className="wordmark">
-          Synergy Dental <span className="wordmark-tag">demo</span>
-        </p>
+        <p className="login-eyebrow">Practice dashboard</p>
         <h1>Staff sign in</h1>
         {error && (
           <div className="banner banner-error" role="alert">
@@ -82,9 +91,7 @@ export default function Login() {
         <button type="submit" className="btn" disabled={submitting || !email || !password}>
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
-        <p className="muted login-note">
-          Demo system with fictional data. Demo credentials are listed in the project README.
-        </p>
+        <p className="muted login-note">Forgotten your password? Ask an administrator to reset it.</p>
       </form>
     </main>
   )

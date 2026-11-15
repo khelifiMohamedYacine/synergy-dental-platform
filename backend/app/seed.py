@@ -1,9 +1,13 @@
-"""Seed fictional demo data (doc 04 §9).
+"""Seed the database (doc 04 §9).
 
-    python -m app.seed               # reference data + demo users + 5,000 enquiries (if empty)
-    python -m app.seed --enquiries 0 # reference data and users only
+    python -m app.seed               # starter clinics + treatments and the first admin account
+    python -m app.seed --demo        # also demo staff accounts and 5,000 sample enquiries
+    python -m app.seed --purge-demo  # remove sample enquiries and demo staff accounts
 
-Everything is fictional: names are invented, emails use the reserved .test domain, and phone
+A clean install (the default) has no sample enquiries and no demo accounts. The starter clinics
+and treatments are meant to be edited in the dashboard. Demo data is for development only.
+
+Demo data is fictional: names are invented, emails use the reserved .test domain, and phone
 numbers come from Ofcom's ranges reserved for TV and drama (020 7946 0xxx, 07700 900xxx).
 A fixed random seed makes the data, and therefore the analytics, reproducible.
 """
@@ -13,7 +17,7 @@ import random
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, insert, select
+from sqlalchemy import delete, func, insert, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -23,6 +27,7 @@ from app.models import (
     Clinic,
     CloseReason,
     Enquiry,
+    EnquiryNote,
     EnquiryStatus,
     EnquiryStatusHistory,
     EnquiryType,
@@ -143,8 +148,8 @@ MESSAGES = [
 ]
 
 DEMO_STAFF = [
-    ("staff@example.test", "Sam Receptionist (demo)", Role.STAFF),
-    ("manager@example.test", "Jordan Practice Manager (demo)", Role.STAFF),
+    ("staff@example.test", "Sam Receptionist", Role.STAFF),
+    ("manager@example.test", "Jordan Practice Manager", Role.STAFF),
 ]
 
 
@@ -180,7 +185,7 @@ def seed_users(db: Session, staff_password: str | None) -> None:
     settings = get_settings()
     accounts = []
     if settings.seed_admin_password:
-        accounts.append((settings.seed_admin_email.lower(), "Alex Morgan (demo admin)",
+        accounts.append((settings.seed_admin_email.lower(), settings.seed_admin_name,
                          Role.ADMIN, settings.seed_admin_password))  # fmt: skip
     if staff_password:
         accounts += [(e, n, r, staff_password) for e, n, r in DEMO_STAFF]
@@ -303,22 +308,49 @@ def seed_enquiries(db: Session, count: int) -> None:
     print(f"Seeded {len(enquiries)} enquiries with {len(history)} status changes.")
 
 
+def purge_demo(db: Session) -> None:
+    """Delete sample enquiries (all use the reserved example.test domain) and demo staff."""
+    deleted = db.execute(delete(Enquiry).where(Enquiry.email.like("%@example.test"))).rowcount
+    print(f"Deleted {deleted} sample enquiries.")
+    # The end-to-end tests' staff account (e2e/tests/global-setup.js) is test data too.
+    for email in [*(e for e, _n, _r in DEMO_STAFF), "e2e.staff@example.test"]:
+        user = db.scalar(select(User).where(User.email == email))
+        if user is None:
+            continue
+        in_use = db.scalar(
+            select(func.count(EnquiryStatusHistory.id)).where(
+                EnquiryStatusHistory.changed_by_id == user.id
+            )
+        ) or db.scalar(select(func.count(EnquiryNote.id)).where(EnquiryNote.author_id == user.id))
+        if in_use:
+            user.is_active = False  # still named in real history: keep the record, block sign-in
+            print(f"Deactivated test account {email} (referenced by history).")
+        else:
+            db.delete(user)
+            print(f"Deleted test account {email}.")
+    admin = db.scalar(select(User).where(User.full_name.like("%(demo admin)")))
+    if admin:
+        admin.full_name = get_settings().seed_admin_name
+    db.commit()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--enquiries", type=int, default=5000)
-    parser.add_argument(
-        "--staff-password",
-        default=None,
-        help="Create demo STAFF accounts with this password (default: SEED_STAFF_PASSWORD env)",
-    )
+    parser.add_argument("--demo", action="store_true", help="Add demo staff and sample enquiries")
+    parser.add_argument("--enquiries", type=int, default=5000, help="Sample enquiries with --demo")
+    parser.add_argument("--purge-demo", action="store_true", help="Remove all demo data")
     args = parser.parse_args()
     import os
 
-    staff_password = args.staff_password or os.environ.get("SEED_STAFF_PASSWORD")
     with Session(get_engine()) as db:
+        if args.purge_demo:
+            purge_demo(db)
+            return
         seed_reference(db)
+        staff_password = os.environ.get("SEED_STAFF_PASSWORD") if args.demo else None
         seed_users(db, staff_password)
-        seed_enquiries(db, args.enquiries)
+        if args.demo:
+            seed_enquiries(db, args.enquiries)
 
 
 if __name__ == "__main__":

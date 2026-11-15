@@ -67,7 +67,9 @@ def test_by_treatment_and_clinic(client, funnel, staff_headers):
     assert (implants["total"], implants["booked"], implants["conversion_rate"]) == (2, 2, 1.0)
     assert any(r["treatment_name"] == "Not sure yet" and r["treatment_id"] is None for r in rows)
     clinics = get(client, staff_headers, "by-clinic")
-    assert len(clinics) == 1
+    assert len(clinics) == 4  # every active clinic is listed, busiest first
+    assert [c["total"] for c in clinics[1:]] == [0, 0, 0]
+    assert clinics[1]["conversion_rate"] is None
     assert clinics[0]["clinic_name"] == "Riverside Dental Studio"
     assert (clinics[0]["total"], clinics[0]["booked"], clinics[0]["conversion_rate"]) == (4, 2, 0.5)
 
@@ -104,8 +106,10 @@ def test_shop_summary_hides_customer_data():
          "date_created_gmt": "2026-11-11T10:00:00", "line_items": []},
     ]  # fmt: skip
     summary = shop.build_summary(orders)
-    assert summary.orders_last_30_days == 1
-    assert summary.revenue_last_30_days_pence == 2499
+    assert summary.paid_orders == 1
+    assert summary.revenue_pence == 2499
+    assert summary.average_order_pence == 2499
+    assert summary.to_fulfil == 1
     assert summary.recent_orders[0].item_count == 3
     assert "Secret" not in summary.model_dump_json()
 
@@ -127,3 +131,40 @@ def test_shop_unavailable_is_503(client, staff_headers, monkeypatch, overrides):
     r = client.get("/api/v1/shop/summary", headers=staff_headers)
     assert r.status_code == 503
     assert r.json()["error"]["code"] == "SHOP_UNAVAILABLE"
+
+
+def test_order_out_and_transitions():
+    order = {
+        "id": 9, "number": "1009", "status": "on-hold", "total": "12.40",
+        "date_created_gmt": "2026-11-12T09:30:00", "payment_method_title": "Bank transfer",
+        "billing": {"first_name": "Ada", "last_name": "Shopper", "email": "ada@example.test",
+                    "address_1": "1 High St", "city": "Leeds", "postcode": "LS1 1AA"},
+        "shipping": {}, "shipping_lines": [{"method_title": "Standard delivery"}],
+        "meta_data": [{"key": "_sd_collection_clinic", "value": "Riverside, Leeds"}],
+        "line_items": [{"name": "Floss", "quantity": 2, "total": "8.45"}],
+    }  # fmt: skip
+    out = shop._order_out(order)
+    assert out.customer_name == "Ada Shopper"
+    assert out.delivery_address == "1 High St, Leeds, LS1 1AA"
+    assert out.allowed_statuses == ["cancelled", "processing"]
+    assert out.items[0].total_pence == 845
+    assert out.collection_clinic == "Riverside, Leeds"
+
+
+def test_product_payload_maps_pence_and_stock():
+    payload = shop._product_payload(
+        {"name": "Floss", "price_pence": 499, "sale_price_pence": None, "stock_quantity": None,
+         "in_stock": False, "category_ids": [3], "recommended_after": "hygienist"}
+    )  # fmt: skip
+    assert payload["regular_price"] == "4.99"
+    assert payload["sale_price"] == ""
+    assert payload["manage_stock"] is False
+    assert payload["stock_status"] == "outofstock"
+    assert payload["categories"] == [{"id": 3}]
+
+
+def test_shop_management_is_admin_only(client, staff_headers):
+    assert client.get("/api/v1/shop/products", headers=staff_headers).status_code == 403
+    assert client.get("/api/v1/shop/orders", headers=staff_headers).status_code == 403
+    r = client.patch("/api/v1/shop/orders/1", json={"status": "completed"}, headers=staff_headers)
+    assert r.status_code == 403

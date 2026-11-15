@@ -8,6 +8,7 @@ const visitor = {
   phone: '07700 900321',
 }
 let reference
+const PRODUCT = `Aligner Cleaning Crystals ${unique.toUpperCase()}`
 
 test.describe.configure({ mode: 'serial' })
 
@@ -108,24 +109,43 @@ test('3. the overview shows analytics computed from the data', async ({ page }) 
   await expectAccessible(page, { exclude: ['.recharts-wrapper'] })
 })
 
-test('4. a shopper uses the cart, an offer, delivery options and the card form', async ({ page }) => {
+test('4a. an admin adds a product to the shop from the dashboard', async ({ page }) => {
+  await signIn(page, ADMIN)
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Shop' }).click()
+  await expect(page.getByRole('heading', { name: 'Shop', level: 1 })).toBeVisible()
+  await page.getByRole('button', { name: 'Add product' }).first().click()
+  // Validation runs before anything is sent.
+  await page.getByRole('button', { name: 'Save product' }).click()
+  await expect(page.getByText('Enter a product name.')).toBeVisible()
+  await page.getByLabel('Name', { exact: true }).fill(PRODUCT)
+  await page.getByLabel('Price (£)').fill('14.99')
+  await page.getByLabel('Short description').fill('A month of cleaning crystals for clear aligners.')
+  await page.getByLabel('Track stock quantity').check()
+  await page.getByLabel('Quantity in stock').fill('25')
+  await page.getByLabel('Recommended after treatment').selectOption('clear-aligners')
+  await page.getByRole('button', { name: 'Save product' }).click()
+  await expect(page.getByText(`Product “${PRODUCT}” saved.`)).toBeVisible()
+  const row = page.getByRole('row').filter({ hasText: PRODUCT })
+  await expect(row).toContainText('£14.99')
+  await expect(row).toContainText('25 in stock')
+  await page.screenshot(shots('dashboard-shop-products'))
+  await expectAccessible(page)
+})
+
+test('4b. a shopper uses the cart, delivery options and pays on collection', async ({ page }) => {
   test.setTimeout(120_000)
   await page.goto('/shop/')
-  await expect(page.getByText('Demo store: no real payments or deliveries.')).toBeVisible()
-  await expect(page.getByText(/use code SMILE10/)).toBeVisible()
+  await expect(page.getByText(/free UK delivery on orders over £30/)).toBeVisible()
   await page.screenshot(shots('shop'))
-  await page.getByRole('link', { name: /Aligner Cleaning Crystals/ }).first().click()
+  await page.getByRole('link', { name: PRODUCT }).first().click()
   await expect(page.getByText('Recommended after:')).toBeVisible()
   await page.locator('form.cart').getByRole('button', { name: 'Add to cart' }).click()
 
-  // The header cart shows the item and leads to the cart (it was missing before).
+  // The header cart shows the item and leads to the cart.
   const headerCart = page.locator('a.header-cart')
   await expect(headerCart).toContainText('1 item')
   await headerCart.click()
   await expect(page).toHaveURL(/\/cart\//)
-  await page.getByPlaceholder('Coupon code').fill('SMILE10')
-  await page.getByRole('button', { name: 'Apply coupon' }).click()
-  await expect(page.getByText('Coupon code applied successfully.')).toBeVisible()
   await page.getByRole('link', { name: /Proceed to checkout/ }).click()
 
   await page.locator('#billing_first_name').fill('Demo')
@@ -144,23 +164,18 @@ test('4. a shopper uses the cart, an offer, delivery options and the card form',
   const clinicPicker = page.locator('#sd_collection_clinic')
   await expect(clinicPicker).toBeVisible()
 
-  // Card form: a real-looking card number is refused (only test cards are accepted).
-  await page.locator('#sd_card_name').fill('Demo Shopper')
-  await page.locator('#sd_card_number').fill('4111 1111 1111 1111')
-  await page.locator('#sd_card_expiry').fill('12/34')
-  await page.locator('#sd_card_cvc').fill('123')
+  // Payment: bank transfer is always offered; "Pay at the clinic" only with clinic collection.
+  const payment = page.locator('#payment')
+  await expect(payment.getByLabel('Bank transfer')).toBeVisible()
+  await payment.getByLabel('Pay at the clinic').check()
   await page.getByRole('button', { name: 'Place order' }).click()
-  const errors = page.locator('.woocommerce-error')
-  await expect(errors).toContainText('only test cards are accepted')
-  await expect(errors).toContainText('Choose the clinic you will collect your order from.')
+  await expect(page.locator('.woocommerce-error')).toContainText('Choose the clinic you will collect your order from.')
 
   await clinicPicker.selectOption('parkside')
-  await page.locator('#sd_card_number').fill('4242 4242 4242 4242')
   await page.screenshot(shots('shop-checkout'))
   await page.getByRole('button', { name: 'Place order' }).click()
   await expect(page.getByText(/Thank you\. Your order has been received/)).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText('Collect from:')).toBeVisible()
-  await expect(page.getByText(/Visa •••• 4242/)).toBeVisible()
   await page.screenshot(shots('shop-order-received'))
 })
 
@@ -182,16 +197,33 @@ test('website pages show photography and pass accessibility checks', async ({ pa
   await expectAccessible(page)
 })
 
-test('5. admins see the shop panel and manage users; roles are enforced', async ({ page }) => {
-  test.setTimeout(150_000) // the API caches shop data for 60 s
+test('5. admins fulfil the order, see the shop panel and manage users; roles are enforced', async ({ page }) => {
+  test.setTimeout(150_000) // the API caches shop totals for 60 s
   await signIn(page, ADMIN)
-  const shop = page.getByRole('region', { name: 'Shop – last 30 days' })
-  // The API caches WooCommerce data for 60 s, so the new order can take a moment to appear.
+  const shop = page.getByRole('region', { name: 'Shop' })
+  // The API caches WooCommerce totals for 60 s, so the new order can take a moment to appear.
   await expect(async () => {
     await page.reload()
-    await expect(shop.getByText('Paid orders')).toBeVisible()
-    await expect(shop.getByRole('cell', { name: 'processing' }).first()).toBeVisible()
+    await expect(shop.getByText('Paid orders', { exact: true })).toBeVisible()
+    await expect(shop.getByText('Paid – to dispatch').first()).toBeVisible()
   }).toPass({ timeout: 75_000, intervals: [5_000, 10_000, 15_000] })
+  await page.screenshot(shots('dashboard-overview-shop'))
+
+  // Orders: the shopper's order is listed with its collection clinic; mark it as completed.
+  await shop.getByRole('link', { name: 'Manage orders' }).click()
+  const order = page.getByRole('row').filter({ hasText: `shopper.${unique}@example.test` })
+  await expect(order).toContainText('Parkside')
+  await order.getByRole('button', { name: /^Mark as completed/ }).click()
+  await expect(page.getByText(/is now “Completed”/)).toBeVisible()
+  await expect(order).toContainText('Completed')
+  await page.screenshot(shots('dashboard-shop-orders'))
+  await expectAccessible(page)
+
+  // Remove the test product again.
+  await page.getByRole('tab', { name: 'Products' }).click()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('row').filter({ hasText: PRODUCT }).getByRole('button', { name: /^Remove/ }).click()
+  await expect(page.getByText(`“${PRODUCT}” was removed.`)).toBeVisible()
 
   await page.getByRole('link', { name: 'Users' }).click()
   await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible()

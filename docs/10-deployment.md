@@ -31,7 +31,7 @@ name), so no domain purchase is needed. Caddy obtains and renews the Let's Encry
 
 ```sh
 # 1. On your machine: generate secrets for the server's hostname (keep this file private).
-py infra/make_env.py 203-0-113-10.sslip.io > .env.production
+py infra/make_env.py 203-0-113-10.sslip.io admin@your-clinic.co.uk > .env.production
 
 # 2. On the server (once): prepare the VM.
 git clone https://github.com/khelifiMohamedYacine/synergy-dental-platform.git /opt/synergy
@@ -54,7 +54,7 @@ firewall rules that `server-setup.sh` adds.
 The same Playwright suite used in development runs against any deployment:
 
 ```sh
-cd e2e && BASE_URL=https://<host> E2E_ADMIN_PASSWORD=… E2E_STAFF_PASSWORD=… npx playwright test
+cd e2e && BASE_URL=https://<host> E2E_ADMIN_PASSWORD=… npx playwright test
 ```
 
 Before the first real deployment, the production stack was run locally with `SITE_DOMAIN=localhost`
@@ -71,8 +71,8 @@ docker compose -f docker-compose.prod.yml exec -T postgres pg_restore -U synergy
 gunzip -c wordpress-<stamp>.sql.gz | docker compose -f docker-compose.prod.yml exec -T mariadb sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" wordpress'
 ```
 
-Off-site copies (object storage) are the next step for a real deployment; for a demo with
-fictional data, local copies are sufficient.
+Off-site copies (object storage) are strongly recommended once the site holds real enquiries
+and orders: copy `/opt/synergy/backups` to another provider nightly.
 
 ## 6. Production path for a real business (not built)
 

@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     seed_admin_email: str = "admin@example.test"
     seed_admin_password: str = ""
+    seed_admin_name: str = "Administrator"
 
     wc_base_url: str = "http://wordpress"
     wc_consumer_key: str = ""

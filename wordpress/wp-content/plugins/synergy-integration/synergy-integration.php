@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name:       Synergy Integration (demo)
- * Description:       Treatments and clinics content types, the enquiry form that forwards to the business API, and WooCommerce customisations. Fictional demonstration only; not affiliated with Synergy Dental Group.
+ * Plugin Name:       Synergy Integration
+ * Description:       Treatments and clinics content types, the enquiry form that forwards to the business API, and WooCommerce customisations.
  * Version:           1.0.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
- * Author:            Independent demo project
+ * Author:            Synergy Dental platform team
  * License:           GPL-2.0-or-later
  * Text Domain:       synergy-integration
  *

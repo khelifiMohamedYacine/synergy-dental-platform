@@ -129,6 +129,8 @@ services:
       WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
       WC_CONSUMER_KEY: ${WC_CONSUMER_KEY}
       WC_CONSUMER_SECRET: ${WC_CONSUMER_SECRET}
+      SITE_NAME: ${SITE_NAME:-Synergy Dental}
+      SITE_PUBLIC: ${SITE_PUBLIC:-0}
       # Provisioning installs WooCommerce, which DISALLOW_FILE_MODS would block in this container.
       WORDPRESS_CONFIG_EXTRA: ""
     volumes:

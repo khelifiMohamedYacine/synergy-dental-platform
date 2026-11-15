@@ -128,11 +128,15 @@ def by_clinic(db: Session, period: Period) -> list[dict]:
         text(
             _SCOPE  # noqa: S608
             + """
-        SELECT s.clinic_id AS id, c.name AS name,
-               count(*) AS total,
-               count(*) FILTER (WHERE s.is_booked) AS booked
-        FROM scoped s JOIN clinics c ON c.id = s.clinic_id
-        GROUP BY s.clinic_id, c.name
+        SELECT c.id AS id, c.name AS name,
+               count(s.id) AS total,
+               count(s.id) FILTER (WHERE s.is_booked) AS booked
+        FROM clinics c LEFT JOIN scoped s ON s.clinic_id = c.id
+        WHERE CAST(:clinic_id AS integer) IS NULL OR c.id = CAST(:clinic_id AS integer)
+        GROUP BY c.id, c.name, c.is_active
+        -- Every active clinic is listed (a clinic with no enquiries is worth seeing); inactive
+        -- ones only when they had enquiries in the period.
+        HAVING c.is_active OR count(s.id) > 0
         ORDER BY total DESC, name
     """
         ),

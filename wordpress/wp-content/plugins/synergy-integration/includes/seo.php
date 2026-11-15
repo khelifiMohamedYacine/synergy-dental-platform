@@ -23,8 +23,6 @@ add_action(
 		if ( $description ) {
 			printf( '<meta name="description" content="%s">' . "\n", esc_attr( wp_strip_all_tags( $description ) ) );
 		}
-		// Demo site: keep it out of search engines.
-		echo '<meta name="robots" content="noindex, nofollow">' . "\n";
 
 		if ( is_singular( 'treatment' ) ) {
 			$faqs = synergy_get_faqs( get_the_ID() );
@@ -51,5 +49,4 @@ add_action(
 	1
 );
 
-// Robots: do not index the demo.
-add_filter( 'wp_robots', static fn( $robots ) => array_merge( $robots, array( 'noindex' => true, 'nofollow' => true ) ) );
+// Search engine visibility follows Settings > Reading (blog_public), which WordPress core applies.

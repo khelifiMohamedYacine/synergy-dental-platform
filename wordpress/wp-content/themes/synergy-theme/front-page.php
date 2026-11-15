@@ -32,7 +32,7 @@ $products   = function_exists( 'wc_get_products' ) ? wc_get_products(
 	)
 ) : array();
 ?>
-<section class="hero">
+<section class="hero hero-v2">
 	<div class="container hero-inner">
 		<div class="hero-text">
 			<p class="eyebrow"><?php esc_html_e( 'Private & family dentistry', 'synergy-theme' ); ?></p>
@@ -43,7 +43,10 @@ $products   = function_exists( 'wc_get_products' ) ? wc_get_products(
 				<a class="btn btn-secondary" href="<?php echo esc_url( get_post_type_archive_link( 'treatment' ) ); ?>"><?php esc_html_e( 'Explore treatments', 'synergy-theme' ); ?> <span aria-hidden="true">→</span></a>
 			</p>
 			<ul class="trust-row">
-				<li><?php esc_html_e( '4 fictional clinics', 'synergy-theme' ); ?></li>
+				<?php $count = synergy_theme_clinic_count(); ?>
+				<?php if ( $count ) : ?>
+					<li><?php /* translators: %d: number of clinics */ echo esc_html( sprintf( _n( '%d clinic', '%d clinics', $count, 'synergy-theme' ), $count ) ); ?></li>
+				<?php endif; ?>
 				<li><?php esc_html_e( 'Clear prices up front', 'synergy-theme' ); ?></li>
 				<li><?php esc_html_e( 'Evening appointments', 'synergy-theme' ); ?></li>
 			</ul>
@@ -68,6 +71,37 @@ $products   = function_exists( 'wc_get_products' ) ? wc_get_products(
 			?>
 			<p class="hero-badge"><strong><?php esc_html_e( 'Same-week', 'synergy-theme' ); ?></strong> <?php esc_html_e( 'consultations', 'synergy-theme' ); ?></p>
 		</div>
+	</div>
+</section>
+
+<section class="section features-band" aria-labelledby="why-h">
+	<div class="container">
+		<div class="section-intro">
+			<p class="eyebrow"><?php esc_html_e( 'Why patients choose us', 'synergy-theme' ); ?></p>
+			<h2 id="why-h"><?php esc_html_e( 'Dentistry that puts you in control', 'synergy-theme' ); ?></h2>
+		</div>
+		<ul class="features">
+			<li class="feature">
+				<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+				<h3><?php esc_html_e( 'Clear, written prices', 'synergy-theme' ); ?></h3>
+				<p><?php esc_html_e( 'Every option and every cost is set out in a written plan before treatment begins.', 'synergy-theme' ); ?></p>
+			</li>
+			<li class="feature">
+				<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+				<h3><?php esc_html_e( 'Appointments that fit', 'synergy-theme' ); ?></h3>
+				<p><?php esc_html_e( 'Early, evening and Saturday appointments, with same-day emergency slots.', 'synergy-theme' ); ?></p>
+			</li>
+			<li class="feature">
+				<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+				<h3><?php esc_html_e( 'Gentle, unhurried care', 'synergy-theme' ); ?></h3>
+				<p><?php esc_html_e( 'Longer first visits and a calm approach for nervous patients.', 'synergy-theme' ); ?></p>
+			</li>
+			<li class="feature">
+				<svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 21h6M12 17v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+				<h3><?php esc_html_e( 'Modern technology', 'synergy-theme' ); ?></h3>
+				<p><?php esc_html_e( 'Digital X-rays and 3D scans for accurate, comfortable treatment.', 'synergy-theme' ); ?></p>
+			</li>
+		</ul>
 	</div>
 </section>
 

@@ -63,3 +63,13 @@ export function londonDateMinus(days) {
   const now = new Date(Date.now() - days * 86400000)
   return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(now)
 }
+
+export const ORDER_STATUS_LABELS = {
+  pending: 'Awaiting payment',
+  'on-hold': 'Awaiting payment',
+  processing: 'Paid – to dispatch',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  refunded: 'Refunded',
+  failed: 'Payment failed',
+}

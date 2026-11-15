@@ -1,6 +1,6 @@
 <?php
 /**
- * Site footer.
+ * Site footer: brand and contact, clinics, information links, booking prompt.
  *
  * @package SynergyTheme
  */
@@ -14,13 +14,17 @@ $clinics = get_posts(
 		'order'       => 'ASC',
 	)
 );
+$phone   = synergy_theme_main_phone();
 ?>
 </main>
 <footer class="site-footer">
 	<div class="container footer-grid">
-		<div>
-			<p class="wordmark">Synergy Dental <span class="wordmark-tag"><?php esc_html_e( 'demo', 'synergy-theme' ); ?></span></p>
+		<div class="footer-brand">
+			<p class="wordmark"><?php synergy_theme_logo_mark(); ?><span class="wordmark-text"><?php bloginfo( 'name' ); ?></span></p>
 			<p><?php esc_html_e( 'Private and family dentistry, planned around you.', 'synergy-theme' ); ?></p>
+			<?php if ( $phone ) : ?>
+				<p class="footer-phone"><a href="tel:<?php echo esc_attr( preg_replace( '/\s+/', '', $phone ) ); ?>"><?php echo esc_html( $phone ); ?></a></p>
+			<?php endif; ?>
 		</div>
 		<nav aria-label="<?php esc_attr_e( 'Clinics', 'synergy-theme' ); ?>">
 			<h2 class="footer-heading"><?php esc_html_e( 'Clinics', 'synergy-theme' ); ?></h2>
@@ -43,10 +47,14 @@ $clinics = get_posts(
 			);
 			?>
 		</nav>
+		<div>
+			<h2 class="footer-heading"><?php esc_html_e( 'Appointments', 'synergy-theme' ); ?></h2>
+			<p><?php esc_html_e( 'Request a consultation online and we will call you back, usually the same working day.', 'synergy-theme' ); ?></p>
+			<a class="btn btn-inverse btn-small" href="<?php echo esc_url( synergy_theme_book_url() ); ?>"><?php esc_html_e( 'Book a consultation', 'synergy-theme' ); ?></a>
+		</div>
 	</div>
 	<div class="container footer-legal">
-		<p><strong><?php esc_html_e( 'Independent technical demonstration – not affiliated with, commissioned by, or endorsed by Synergy Dental Group.', 'synergy-theme' ); ?></strong>
-		<?php esc_html_e( 'All clinics, people, products and data are fictional. No real payments are processed.', 'synergy-theme' ); ?></p>
+		<p>&copy; <?php echo esc_html( gmdate( 'Y' ) . ' ' . get_bloginfo( 'name' ) ); ?>. <?php esc_html_e( 'Prices shown are starting prices; your dentist confirms your treatment plan and costs in writing.', 'synergy-theme' ); ?></p>
 	</div>
 </footer>
 <?php wp_footer(); ?>

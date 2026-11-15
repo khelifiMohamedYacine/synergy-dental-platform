@@ -4,6 +4,8 @@
 set -eu
 
 WOO_VERSION="11.3.0"
+STRIPE_VERSION="11.2.0"   # official WooCommerce Stripe gateway
+SITE_NAME="${SITE_NAME:-Synergy Dental}"
 export WP_CLI_CACHE_DIR=/tmp/wp-cli-cache   # www-data has no writable home directory
 cd /var/www/html
 
@@ -19,7 +21,7 @@ if ! wp core is-installed 2>/dev/null; then
   echo "Installing WordPress core..."
   wp core install \
     --url="$WP_URL" \
-    --title="Synergy Dental (demo)" \
+    --title="$SITE_NAME" \
     --admin_user="$WP_ADMIN_USER" \
     --admin_password="$WP_ADMIN_PASSWORD" \
     --admin_email="$WP_ADMIN_EMAIL" \
@@ -32,26 +34,31 @@ else
 fi
 
 echo "Configuring site options..."
-wp option update blogdescription "Private and family dentistry – a fictional demonstration site" >/dev/null
+wp option update blogname "$SITE_NAME" >/dev/null   # set SITE_NAME in .env to rename the site
+wp option update blogdescription "Private and family dentistry" >/dev/null
 wp option update timezone_string "Europe/London" >/dev/null
 wp option update date_format "j F Y" >/dev/null
-wp option update blog_public 0 >/dev/null
+# Hidden from search engines until launch: set SITE_PUBLIC=1 (or tick the box in Settings > Reading).
+wp option update blog_public "${SITE_PUBLIC:-0}" >/dev/null
 wp option update default_comment_status closed >/dev/null
 wp option update default_ping_status closed >/dev/null
 wp rewrite structure '/%postname%/' >/dev/null
 
 echo "Activating theme and plugins..."
 wp theme activate synergy-theme >/dev/null
-if ! wp plugin is-installed woocommerce; then
-  # Downloaded with curl rather than `wp plugin install <slug>`: PHP's HTTP client in this image
-  # drops the TLS connection on large downloads, while the curl binary is reliable.
-  zip="/tmp/woocommerce.$WOO_VERSION.zip"
-  curl -fsSL --retry 3 --retry-all-errors -o "$zip" \
-    "https://downloads.wordpress.org/plugin/woocommerce.$WOO_VERSION.zip"
-  wp plugin install "$zip" >/dev/null
-  rm -f "$zip"
-fi
-wp plugin activate woocommerce >/dev/null
+# Downloaded with curl rather than `wp plugin install <slug>`: PHP's HTTP client in this image
+# drops the TLS connection on large downloads, while the curl binary is reliable.
+install_plugin() {
+  if ! wp plugin is-installed "$1"; then
+    zip="/tmp/$1.$2.zip"
+    curl -fsSL --retry 3 --retry-all-errors -o "$zip" "https://downloads.wordpress.org/plugin/$1.$2.zip"
+    wp plugin install "$zip" >/dev/null
+    rm -f "$zip"
+  fi
+  wp plugin activate "$1" >/dev/null
+}
+install_plugin woocommerce "$WOO_VERSION"
+install_plugin woocommerce-gateway-stripe "$STRIPE_VERSION"
 wp plugin activate synergy-integration >/dev/null
 # Remove bundled default themes we do not use (smaller attack surface).
 for t in $(wp theme list --status=inactive --field=name); do wp theme delete "$t" >/dev/null || true; done
@@ -73,13 +80,22 @@ opt woocommerce_show_marketplace_suggestions "no"
 opt woocommerce_analytics_enabled "no"
 opt woocommerce_task_list_hidden "yes"
 opt woocommerce_onboarding_profile '{"skipped":true}' --format=json
-opt woocommerce_synergy_demo_settings '{"enabled":"yes"}' --format=json
-for gw in bacs cheque cod; do
-  opt "woocommerce_${gw}_settings" '{"enabled":"no"}' --format=json
-done
+# Payments. Card payments: WooCommerce > Settings > Payments > Stripe, paste the Stripe keys
+# (it stays hidden at checkout until connected). Until then, and alongside it:
+#  - bank transfer (orders wait "on hold" until staff mark them paid in the dashboard),
+#  - pay when collecting from a clinic (only offered with the clinic-collection delivery option).
+# Once configured (a title exists), settings changed in WordPress admin survive re-provisioning.
+if ! wp option pluck woocommerce_bacs_settings title >/dev/null 2>&1; then
+  opt woocommerce_bacs_settings '{"enabled":"yes","title":"Bank transfer","description":"Pay by bank transfer using your order number as the reference. We dispatch your order once the payment has arrived.","instructions":"Please use your order number as the payment reference. We dispatch your order once the payment has arrived."}' --format=json
+fi
+if ! wp option pluck woocommerce_cod_settings title >/dev/null 2>&1; then
+  opt woocommerce_cod_settings '{"enabled":"yes","title":"Pay at the clinic","description":"Pay by card or cash when you collect your order.","instructions":"Pay by card or cash when you collect your order from the clinic.","enable_for_methods":["local_pickup"],"enable_for_virtual":"no"}' --format=json
+fi
+opt woocommerce_cheque_settings '{"enabled":"no"}' --format=json
+wp option delete woocommerce_synergy_demo_settings >/dev/null 2>&1 || true
 wp wc tool run install_pages --user="$WP_ADMIN_USER" >/dev/null 2>&1 || true
 
-echo "Creating content, products, menus and API keys..."
+echo "Creating pages, menus, delivery options and API keys..."
 wp eval-file /provision/content.php
 
 wp rewrite flush >/dev/null

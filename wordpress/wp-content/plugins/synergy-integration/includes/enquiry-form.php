@@ -203,9 +203,8 @@ function synergy_render_confirmation( array $c ): string {
 			<p><?php /* translators: 1: clinic name, 2: phone */ printf( esc_html__( 'Questions before then? Call %1$s on %2$s.', 'synergy-integration' ), esc_html( $clinic['name'] ), '<a href="tel:' . esc_attr( preg_replace( '/\s+/', '', $clinic['phone'] ) ) . '">' . esc_html( $clinic['phone'] ) . '</a>' ); ?></p>
 		<?php endif; ?>
 		<?php if ( function_exists( 'wc_get_page_permalink' ) ) : ?>
-			<p><a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Browse aftercare essentials in our demo shop', 'synergy-integration' ); ?></a></p>
+			<p><a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Browse our aftercare essentials', 'synergy-integration' ); ?></a></p>
 		<?php endif; ?>
-		<p class="sd-demo-note"><?php esc_html_e( 'This is a demonstration site: no one will contact you.', 'synergy-integration' ); ?></p>
 	</div>
 	<?php
 	return (string) ob_get_clean();
@@ -303,9 +302,9 @@ function synergy_enquiry_form_shortcode(): string {
 				<input id="sd-<?php echo esc_attr( $field ); ?>" name="<?php echo esc_attr( $field ); ?>" type="<?php echo esc_attr( $type ); ?>"
 					autocomplete="<?php echo esc_attr( $autocomplete ); ?>" required value="<?php echo esc_attr( $v( $field ) ); ?>"<?php echo synergy_field_aria( $errors, $field ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 				<?php if ( 'phone' === $field ) : ?>
-					<p class="sd-hint"><?php esc_html_e( 'UK mobile or landline. For this demo, please use a fictional number such as 07700 900123.', 'synergy-integration' ); ?></p>
+					<p class="sd-hint"><?php esc_html_e( 'UK mobile or landline, so we can call you back.', 'synergy-integration' ); ?></p>
 				<?php elseif ( 'email' === $field ) : ?>
-					<p class="sd-hint"><?php esc_html_e( 'For this demo, please use a fictional address such as you@example.test.', 'synergy-integration' ); ?></p>
+					<p class="sd-hint"><?php esc_html_e( 'We send your confirmation here.', 'synergy-integration' ); ?></p>
 				<?php endif; ?>
 				<?php echo synergy_field_error( $errors, $field ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
