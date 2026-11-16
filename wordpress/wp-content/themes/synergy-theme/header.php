@@ -19,7 +19,6 @@ $phone = synergy_theme_main_phone();
 <a class="skip-link" href="#content"><?php esc_html_e( 'Skip to content', 'synergy-theme' ); ?></a>
 <div class="topbar">
 	<div class="container topbar-inner">
-		<p><?php esc_html_e( 'Evening and Saturday appointments available', 'synergy-theme' ); ?></p>
 		<?php if ( $phone ) : ?>
 			<p><?php esc_html_e( 'Call us', 'synergy-theme' ); ?> <a href="tel:<?php echo esc_attr( preg_replace( '/\s+/', '', $phone ) ); ?>"><?php echo esc_html( $phone ); ?></a></p>
 		<?php endif; ?>

@@ -8,7 +8,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SYNERGY_THEME_VERSION', '2.1.0' );
+define( 'SYNERGY_THEME_VERSION', '2.1.1' );
 
 add_action(
 	'after_setup_theme',
@@ -164,7 +164,6 @@ function synergy_theme_fallback_menu(): void {
 		home_url( '/clinics/' )    => __( 'Clinics', 'synergy-theme' ),
 		home_url( '/about/' )      => __( 'About', 'synergy-theme' ),
 		home_url( '/shop/' )       => __( 'Shop', 'synergy-theme' ),
-		home_url( '/contact/' )    => __( 'Contact', 'synergy-theme' ),
 	);
 	echo '<ul class="menu">';
 	foreach ( $items as $url => $label ) {

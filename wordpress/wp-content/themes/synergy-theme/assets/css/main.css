@@ -1399,7 +1399,7 @@ h2 {
 
 .topbar-inner {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: var(--space-4);
   min-height: 38px;
   align-items: center;
@@ -1421,10 +1421,6 @@ h2 {
 }
 
 @media (max-width: 639px) {
-  .topbar-inner > p:first-child {
-    display: none;
-  }
-
   .topbar-inner {
     justify-content: center;
   }
@@ -2568,8 +2564,9 @@ h2 {
   color: var(--color-primary);
 }
 
-/* The home page ends with the full-width call-to-action band, flush with the footer. */
-.home .site-main {
+/* Pages that end with the full-width call-to-action band (home, about) sit flush with the footer. */
+.home .site-main,
+.site-main:has(> .cta-band:last-child) {
   padding-bottom: 0;
 }
 

@@ -413,7 +413,6 @@ $menus = array(
 			array( 'Clinics', get_post_type_archive_link( 'clinic' ) ),
 			array( 'About', get_permalink( $page_ids['about'] ) ),
 			array( 'Shop', wc_get_page_permalink( 'shop' ) ),
-			array( 'Contact', get_permalink( $page_ids['contact'] ) ),
 		),
 	),
 	'Footer'  => array(
