@@ -15,9 +15,12 @@ export WP_URL="${RENDER_EXTERNAL_URL:-${WP_URL:-http://localhost:$PORT}}"
 WP_URL="${WP_URL%/}"
 case "$WP_URL" in https://*) export FORCE_HTTPS=1 ;; *) export FORCE_HTTPS=0 ;; esac
 
-# PostgreSQL URL for SQLAlchemy + psycopg 3 (providers hand out postgres:// or postgresql://).
-DATABASE_URL="${DATABASE_URL/#postgres:\/\//postgresql+psycopg://}"
-DATABASE_URL="${DATABASE_URL/#postgresql:\/\//postgresql+psycopg://}"
+# PostgreSQL URLs for SQLAlchemy + psycopg 3 (providers hand out postgres:// or postgresql://).
+# Neon: DATABASE_URL is the pooled endpoint (application traffic); DATABASE_URL_UNPOOLED is the
+# direct endpoint, used for Alembic migrations (PgBouncer transaction mode breaks session state).
+sqlalchemy_url() { local u="${1/#postgres:\/\//postgresql+psycopg://}"; echo "${u/#postgresql:\/\//postgresql+psycopg://}"; }
+DATABASE_URL="$(sqlalchemy_url "$DATABASE_URL")"
+MIGRATION_DATABASE_URL="$(sqlalchemy_url "${DATABASE_URL_UNPOOLED:-$DATABASE_URL}")"
 export DATABASE_URL API_ENV=production CORS_ALLOWED_ORIGINS=""
 export SEED_ADMIN_EMAIL="${SEED_ADMIN_EMAIL:-admin@example.test}" SEED_ADMIN_NAME="${SEED_ADMIN_NAME:-Administrator}"
 export WP_ADMIN_USER="${WP_ADMIN_USER:-sd_site_owner}" WP_ADMIN_EMAIL="${WP_ADMIN_EMAIL:-owner@example.test}"
@@ -31,10 +34,10 @@ export WP_SALT="${WP_SALT:-$JWT_SECRET}"
 cd /opt/api
 log "Migrating the business database..."
 for i in 1 2 3 4 5; do
-  /opt/venv/bin/alembic upgrade head && break
+  DATABASE_URL="$MIGRATION_DATABASE_URL" /opt/venv/bin/alembic upgrade head && break
   log "Database not reachable yet (attempt $i), retrying..."; sleep 5
 done
-/opt/venv/bin/python -m app.seed
+DATABASE_URL="$MIGRATION_DATABASE_URL" /opt/venv/bin/python -m app.seed
 /opt/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips '*' &
 
 # ---------- WordPress (database baked into the image) ----------

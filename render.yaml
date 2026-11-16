@@ -6,13 +6,15 @@ services:
     name: synergy-dental
     runtime: docker
     plan: free
-    region: frankfurt
+    region: ohio   # same AWS region as the Neon project (us-east-2)
     dockerfilePath: ./deploy/render/Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
-      - key: DATABASE_URL          # PostgreSQL connection string, e.g. from Neon (free, no card)
+      - key: DATABASE_URL          # Neon pooled connection string (host contains "-pooler")
+        sync: false
+      - key: DATABASE_URL_UNPOOLED # Neon direct connection string, used for migrations
         sync: false
       - key: JWT_SECRET
         generateValue: true
