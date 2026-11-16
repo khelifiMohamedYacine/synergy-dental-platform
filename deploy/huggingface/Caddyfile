@@ -1,0 +1,48 @@
+# One origin for the whole platform on port 7860. Hugging Face terminates HTTPS in front of
+# the container, so Caddy serves plain HTTP and trusts the proxy's X-Forwarded-* headers.
+{
+	admin off
+	auto_https off
+	servers {
+		trusted_proxies static 0.0.0.0/0 ::/0
+	}
+}
+
+:7860 {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	redir /dashboard /dashboard/ 308
+
+	# Static React build. Unknown paths fall back to index.html (client-side routing).
+	handle_path /dashboard/* {
+		root * /srv/dashboard
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; frame-ancestors 'self' https://huggingface.co; base-uri 'self'; form-action 'self'"
+		try_files {path} /index.html
+		file_server
+	}
+
+	# WordPress (public site + shop) through PHP-FPM.
+	@blocked path /xmlrpc.php /wp-config.php /readme.html /license.txt /wp-content/uploads/*.php
+	handle @blocked {
+		respond 404
+	}
+
+	handle {
+		root * /var/www/html
+		php_fastcgi 127.0.0.1:9000
+		file_server
+	}
+}
