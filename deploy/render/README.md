@@ -19,7 +19,7 @@ cannot run (stock is still reduced when an order is placed).
 
 ## Set up (once)
 
-1. **Neon** (https://neon.tech, sign in with GitHub): create a project in *Europe (Frankfurt)*,
+1. **Neon** (https://neon.tech, sign in with GitHub): create a project in *Europe West 2 (London)*,
    then copy the connection string (`postgresql://…?sslmode=require`).
 2. **Render** (https://render.com, sign in with GitHub): **New → Blueprint**, pick this repository,
    paste the Neon string as `DATABASE_URL`, **Apply**. The first build takes about 10 minutes.
@@ -38,7 +38,7 @@ Every push to `main` redeploys automatically.
 ## Test locally (same limits as Render)
 
 ```sh
-docker build -f deploy/render/Dockerfile -t synergy-render .
+docker build -t synergy-render .
 docker run --rm -p 10000:10000 --memory=512m -e DATABASE_URL=postgresql://... \
   -e JWT_SECRET=<32+ chars> -e SERVICE_API_KEY=<32+ chars> -e WP_SALT=x \
   -e WP_ADMIN_PASSWORD=... -e SEED_ADMIN_PASSWORD=... synergy-render

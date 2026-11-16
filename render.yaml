@@ -6,8 +6,8 @@ services:
     name: synergy-dental
     runtime: docker
     plan: free
-    region: ohio   # same AWS region as the Neon project (us-east-2)
-    dockerfilePath: ./deploy/render/Dockerfile
+    region: frankfurt   # closest Render region to the Neon project (London)
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/health
     autoDeploy: true

@@ -8,7 +8,7 @@
 #   edits made on the live site last until the next spin-down (enquiries and staff data persist).
 # The application code is copied unchanged.
 #
-# Build context: repository root.
+# Build context: repository root. Render builds this file by default (./Dockerfile).
 
 # ---------- React dashboard: static build ----------
 FROM node:24-alpine AS dashboard

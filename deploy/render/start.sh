@@ -1,5 +1,5 @@
 #!/bin/bash
-# Start the platform on a Render free web service (see deploy/render/Dockerfile).
+# Start the platform on a Render free web service (see the Dockerfile at the repository root).
 #
 # Required environment (render.yaml): DATABASE_URL (external PostgreSQL), JWT_SECRET,
 # SERVICE_API_KEY, WP_SALT, WP_ADMIN_PASSWORD, SEED_ADMIN_PASSWORD.
