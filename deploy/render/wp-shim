@@ -1,0 +1,7 @@
+#!/bin/sh
+# WP-CLI wrapper for build-time provisioning on SQLite: `wp db check` needs the MySQL client and
+# a MySQL server, neither of which exists here; the SQLite database is always ready.
+if [ "${1:-}" = "db" ] && [ "${2:-}" = "check" ]; then
+  exit 0
+fi
+exec /usr/local/bin/wp "$@"
